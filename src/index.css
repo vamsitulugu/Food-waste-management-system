@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+
+@theme {
+  /* Base surfaces — near-black with a faint green cast, not neutral grey */
+  --color-base-950: #0c100e;
+  --color-base-900: #111613;
+  --color-base-850: #161c19;
+  --color-base-800: #1c2320;
+  --color-base-700: #262e29;
+  --color-base-600: #384039;
+
+  /* Text */
+  --color-ink-100: #edefec;
+  --color-ink-300: #c3cac2;
+  --color-ink-500: #93a196;
+  --color-ink-700: #64726a;
+
+  /* Brand — muted forest green (rescue / sustainability) */
+  --color-brand-300: #8fbb9b;
+  --color-brand-400: #6fa97d;
+  --color-brand-500: #4f7a5b;
+  --color-brand-600: #3d6148;
+  --color-brand-700: #2e4a37;
+
+  /* Warm accent — amber-clay (food warmth), used sparingly */
+  --color-warm-400: #d99a5c;
+  --color-warm-500: #c97a3d;
+  --color-warm-600: #a5602c;
+
+  /* Status */
+  --color-danger-400: #d97b70;
+  --color-danger-500: #c1554a;
+  --color-warning-400: #d1a23d;
+  --color-success-400: #6fa97d;
+
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-base-950);
+  color: var(--color-ink-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--color-base-700);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
