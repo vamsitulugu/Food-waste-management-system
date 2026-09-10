@@ -41,6 +41,7 @@ The schema, security policies, and all business logic live entirely in
 | `0002_phase3_schema.sql` | Full domain schema — organizations, donations, claims, pickup tasks, notifications, saved donations, reports, audit logs — every RLS policy and every lifecycle RPC |
 | `0003_phase5_storage.sql` | The `donation-images` Storage bucket + RLS, and `sweep_expired_donations()` |
 | `0004_security_hardening.sql` | Fixes an authorization bug found in a follow-up security audit (see §9), adds organization-attributed claims, adds the `avatars` Storage bucket |
+| `0005_deferred_role_selection.sql` | Moves role selection from the signup form to a post-login `/choose-role` screen — `profiles.role` becomes nullable, `set_initial_role()` is the one-time RPC that sets it |
 
 **Apply them:**
 
@@ -50,7 +51,7 @@ supabase link --project-ref <your-project-ref>   # ref is in your project URL / 
 supabase db push
 ```
 
-This runs all four files against your Supabase Postgres database. If you ever add more
+This runs all five files against your Supabase Postgres database. If you ever add more
 migrations later, `supabase db push` only applies the ones not yet run.
 
 **Enable the scheduled expiry sweep** (donations whose pickup window passes with no accepted
@@ -95,11 +96,13 @@ Open the printed local URL (typically `http://localhost:5173`).
 
 ## 5. Bootstrap your first admin account
 
-No admin exists yet, and by design nothing in the app can create one — `admin` is not a
-selectable role at signup, and `provision_admin()` requires an existing admin to call it. This
-one step is intentionally manual and out-of-band:
+No admin exists yet, and by design nothing in the app can create one — `admin` isn't a
+selectable option on `/choose-role`, `set_initial_role()`'s own allow-list rejects it even if
+someone tampered with the request, and `provision_admin()` requires an existing admin to call
+it. This one step is intentionally manual and out-of-band:
 
-1. Sign up normally in the app (any role — it doesn't matter, you're about to overwrite it).
+1. Sign up normally in the app — you'll land on the "how will you use the platform?" screen;
+   pick any option, it doesn't matter, you're about to overwrite it with `admin` directly.
 2. In the Supabase dashboard, go to **Table Editor → profiles** (or the SQL editor) and find
    your user's `id`.
 3. Run in the SQL editor:
@@ -117,8 +120,12 @@ Every admin after this one should be created from `/admin/users` → "Promote to
 
 Run through this checklist to confirm everything is wired correctly:
 
-1. **Signup/roles**: create four accounts, one per public role (Donor, Recipient, NGO,
-   Volunteer). Confirm each lands on a role-appropriate dashboard.
+1. **Signup/roles**: create a new account (name/email/password only — no role field on
+   signup). Confirm you're redirected to `/choose-role` on first login, and that skipping it
+   (e.g. navigating straight to `/dashboard` by URL) bounces you back to it. Pick a role and
+   confirm you land on a role-appropriate dashboard afterward, and that revisiting
+   `/choose-role` directly now redirects you to `/dashboard` instead (one-time only). Repeat
+   for all four public roles across separate accounts.
 2. **Donation lifecycle**: as the donor, create a donation (`/donations/new`), upload a photo,
    publish it. Confirm it's invisible to other accounts until published.
 3. **Claim + realtime**: as the recipient, browse to it and submit a claim. Confirm the donor
@@ -147,8 +154,13 @@ Run through this checklist to confirm everything is wired correctly:
 
 ## 7. What's implemented, by phase
 
-**Phase 2 — Auth & roles.** Signup with a role allow-list enforced server-side (`admin`
-structurally unreachable from the client), login/logout, session persistence.
+**Phase 2 — Auth & roles.** Signup collects only name/email/password. Role (Donor, Recipient,
+NGO, Volunteer) is chosen **inside the app on first login**, via `/choose-role` — not on the
+signup form (`0005_deferred_role_selection.sql`). `profiles.role` is nullable until then;
+`RequireAuth` redirects any role-required route to `/choose-role` while it's unset, and
+`set_initial_role()` is a one-time RPC (rejects a second call once a role exists) that
+structurally cannot produce `admin` — same guarantee as the old signup-time trigger, just moved
+to a different screen. Login/logout, session persistence unchanged.
 
 **Phase 3 — Schema & security.** Full schema + RLS matrix + lifecycle RPCs for every domain
 table: manual-only claim acceptance, dual fulfillment paths (self-pickup vs. volunteer-assisted),
@@ -251,7 +263,8 @@ If you're auditing this codebase further, the pattern to grep for in any new
 `SECURITY DEFINER` function is: does every `auth.uid()` comparison either (a) sit behind an
 `auth.uid() IS NULL` guard at the top of the function, or (b) go through a NULL-safe helper like
 `is_admin()` (which is `EXISTS`-based and never returns NULL)? If neither, it's a latent bug of
-this same class.
+this same class. `set_initial_role()` (added in `0005`) follows this pattern from the start —
+it guards on `auth.uid() IS NULL` before doing anything else.
 
 ---
 

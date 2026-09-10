@@ -6,7 +6,7 @@ import { deactivateAccount } from '../../api/profile';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorState } from '../../components/common/States';
-import { ROLE_LABELS } from '../../types/domain';
+import { roleLabel } from '../../types/domain';
 
 export function AdminUsersPage() {
   const { data: users, loading, error, refetch } = useAsyncData(fetchAllUsers);
@@ -53,7 +53,7 @@ export function AdminUsersPage() {
               <div>
                 <p className="text-sm text-ink-100">{u.fullName}</p>
                 <p className="text-xs text-ink-500">
-                  {ROLE_LABELS[u.role]} {!u.isActive && '· Deactivated'}
+                  {u.role ? roleLabel(u.role) : 'No role chosen yet'} {!u.isActive && '· Deactivated'}
                 </p>
               </div>
               {u.isActive && u.role !== 'admin' && (

@@ -35,7 +35,7 @@ export interface Database {
         Row: {
           id: string;
           full_name: string;
-          role: UserRole;
+          role: UserRole | null;
           avatar_url: string | null;
           is_active: boolean;
           created_at: string;
@@ -44,7 +44,7 @@ export interface Database {
         Insert: {
           id: string;
           full_name: string;
-          role: UserRole;
+          role?: UserRole | null;
           avatar_url?: string | null;
           is_active?: boolean;
         };
@@ -279,6 +279,7 @@ export interface Database {
     Functions: {
       is_admin: { Args: { uid: string }; Returns: boolean };
       provision_admin: { Args: { target_profile_id: string }; Returns: void };
+      set_initial_role: { Args: { p_role: Exclude<UserRole, 'admin'> }; Returns: void };
       publish_donation: { Args: { p_donation_id: string }; Returns: void };
       create_claim: {
         Args: {

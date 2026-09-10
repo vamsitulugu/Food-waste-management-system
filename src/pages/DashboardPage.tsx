@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ROLE_LABELS } from '../types/domain';
+import { roleLabel } from '../types/domain';
 import { Button } from '../components/common/Button';
 
 interface QuickLink {
@@ -36,13 +36,13 @@ export function DashboardPage() {
   const { profile } = useAuth();
   if (!profile) return null;
 
-  const links = ROLE_QUICK_LINKS[profile.role] ?? [];
+  const links = profile.role ? ROLE_QUICK_LINKS[profile.role] ?? [] : [];
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl text-ink-100">Welcome, {profile.fullName.split(' ')[0]}</h1>
-        <p className="mt-1 text-sm text-ink-500">Signed in as {ROLE_LABELS[profile.role]}.</p>
+        <p className="mt-1 text-sm text-ink-500">Signed in as {roleLabel(profile.role)}.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

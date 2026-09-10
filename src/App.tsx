@@ -6,6 +6,7 @@ import { AppShell } from './components/common/AppShell';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { ChooseRolePage } from './pages/ChooseRolePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { OrganizationsPage } from './pages/OrganizationsPage';
@@ -38,6 +39,14 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route
+              path="/choose-role"
+              element={
+                <RequireAuth requireRoleSelected={false}>
+                  <ChooseRolePage />
+                </RequireAuth>
+              }
+            />
 
             <Route
               element={

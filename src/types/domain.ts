@@ -44,11 +44,16 @@ export const ROLE_DESCRIPTIONS: Record<Exclude<UserRole, 'admin'>, string> = {
 export interface Profile {
   id: string;
   fullName: string;
-  role: UserRole;
+  role: UserRole | null;
   avatarUrl: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Safe for a profile whose role hasn't been chosen yet (role === null). */
+export function roleLabel(role: UserRole | null | undefined): string {
+  return role ? ROLE_LABELS[role] : '';
 }
 
 export interface Organization {

@@ -3,16 +3,13 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
-import { RoleSelector } from './RoleSelector';
 import { signUp } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
-import type { UserRole } from '../../types/database';
 
 interface FieldErrors {
   fullName?: string;
   email?: string;
   password?: string;
-  role?: string;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,7 +21,6 @@ export function SignupForm() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Exclude<UserRole, 'admin'> | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
@@ -35,7 +31,6 @@ export function SignupForm() {
     if (fullName.trim().length > 120) next.fullName = 'Full name is too long.';
     if (!EMAIL_RE.test(email)) next.email = 'Enter a valid email address.';
     if (password.length < 8) next.password = 'Password must be at least 8 characters.';
-    if (!role) next.role = 'Choose an account type to continue.';
     return next;
   }
 
@@ -43,16 +38,17 @@ export function SignupForm() {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0 || !role) return;
+    if (Object.keys(validationErrors).length > 0) return;
 
     setSubmitting(true);
     try {
-      const result = await signUp({ fullName: fullName.trim(), email, password, role });
+      const result = await signUp({ fullName: fullName.trim(), email, password });
       if (!result.session) {
         // Email confirmation is required by this Supabase project's auth settings.
         setAwaitingConfirmation(true);
       } else {
         showToast('success', 'Account created.');
+        // No role yet — RequireAuth sends them to /choose-role automatically.
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
@@ -68,7 +64,8 @@ export function SignupForm() {
       <div className="rounded-md border border-base-700 bg-base-900 p-6 text-center">
         <p className="text-ink-100">Check your email to confirm your account.</p>
         <p className="mt-2 text-sm text-ink-500">
-          We sent a confirmation link to {email}. Once confirmed, you can sign in.
+          We sent a confirmation link to {email}. Once confirmed, sign in and you'll be asked
+          how you'd like to use the platform.
         </p>
       </div>
     );
@@ -102,12 +99,6 @@ export function SignupForm() {
         autoComplete="new-password"
         required
       />
-
-      <div>
-        <p className="mb-2 text-sm text-ink-300">Account type</p>
-        <RoleSelector value={role} onChange={setRole} />
-        {errors.role && <p className="mt-2 text-sm text-danger-400">{errors.role}</p>}
-      </div>
 
       <Button type="submit" loading={submitting}>
         Create account

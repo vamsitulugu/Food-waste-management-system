@@ -2,7 +2,7 @@ import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { signOut } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
-import { ROLE_LABELS } from '../../types/domain';
+import { roleLabel } from '../../types/domain';
 import { Button } from './Button';
 import { NotificationBell } from '../notifications/NotificationBell';
 
@@ -62,7 +62,7 @@ export function AppShell() {
               <NotificationBell />
               <Link to="/profile" className="text-right">
                 <p className="text-sm text-ink-100">{profile.fullName}</p>
-                <p className="text-xs text-ink-500">{ROLE_LABELS[profile.role]}</p>
+                <p className="text-xs text-ink-500">{roleLabel(profile.role)}</p>
               </Link>
               <Button variant="secondary" onClick={handleSignOut}>
                 Sign out

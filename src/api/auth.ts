@@ -1,25 +1,19 @@
 import { supabase } from '../lib/supabaseClient';
 import type { Profile } from '../types/domain';
-import type { UserRole } from '../types/database';
 
 export interface SignUpInput {
   fullName: string;
   email: string;
   password: string;
-  role: Exclude<UserRole, 'admin'>;
 }
 
-export async function signUp({ fullName, email, password, role }: SignUpInput) {
+export async function signUp({ fullName, email, password }: SignUpInput) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         full_name: fullName,
-        // This is client-supplied metadata. The backend trigger treats it as
-        // untrusted input and allow-lists it — 'admin' is not reachable here
-        // even if this value were tampered with before the request is sent.
-        role,
       },
     },
   });

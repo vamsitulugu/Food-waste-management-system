@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { updateProfile, fetchPhone, updatePhone, deactivateAccount } from '../api/profile';
 import { uploadAvatar, getAvatarUrl, deleteAvatarFile, validateImageFile } from '../api/storage';
 import { signOut } from '../api/auth';
-import { ROLE_LABELS } from '../types/domain';
+import { roleLabel } from '../types/domain';
 
 export function ProfilePage() {
   const { profile, session, refreshProfile } = useAuth();
@@ -139,7 +139,7 @@ export function ProfilePage() {
     <div className="flex max-w-lg flex-col gap-8">
       <div>
         <h1 className="font-display text-2xl text-ink-100">Your profile</h1>
-        <p className="mt-1 text-sm text-ink-500">{ROLE_LABELS[profile.role]}</p>
+        <p className="mt-1 text-sm text-ink-500">{roleLabel(profile.role)}</p>
       </div>
 
       <div className="flex items-center gap-4 rounded-lg border border-base-700 bg-base-900 p-6">

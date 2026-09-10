@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import type { UserRole } from '../types/database';
 
 export interface UpdateProfileInput {
   fullName?: string;
@@ -36,5 +37,11 @@ export async function deactivateAccount(targetProfileId: string) {
   const { error } = await supabase.rpc('deactivate_account', {
     p_target_profile_id: targetProfileId,
   });
+  if (error) throw error;
+}
+
+/** One-time only — the RPC itself rejects a second call once a role is set. */
+export async function setInitialRole(role: Exclude<UserRole, 'admin'>) {
+  const { error } = await supabase.rpc('set_initial_role', { p_role: role });
   if (error) throw error;
 }
