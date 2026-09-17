@@ -66,3 +66,5 @@ end;
 $$;
 revoke execute on function set_initial_role(user_role) from public;
 grant execute on function set_initial_role(user_role) to authenticated;
+
+
