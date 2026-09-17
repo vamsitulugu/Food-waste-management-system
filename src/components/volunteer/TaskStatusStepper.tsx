@@ -5,6 +5,7 @@ import { updateTaskStatus } from '../../api/tasks';
 import { PICKUP_TASK_STATUS_LABELS } from '../../types/domain';
 import type { PickupTask } from '../../types/domain';
 import type { PickupTaskStatus } from '../../types/database';
+import { getErrorMessage } from '../../utils/errors';
 
 const NEXT_STATUS: Partial<Record<PickupTaskStatus, { next: PickupTaskStatus; label: string }>> = {
   assigned: { next: 'en_route_pickup', label: 'Start heading to pickup' },
@@ -27,7 +28,7 @@ export function TaskStatusStepper({ task, onChange }: { task: PickupTask; onChan
       showToast('success', 'Status updated.');
       onChange();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update status.');
+      showToast('error', getErrorMessage(err, 'Could not update status.'));
     } finally {
       setUpdating(false);
     }

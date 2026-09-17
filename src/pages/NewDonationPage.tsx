@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { DonationForm } from '../components/donations/DonationForm';
 import { createDonation } from '../api/donations';
 import type { DonationInput } from '../api/donations';
+import { getErrorMessage } from '../utils/errors';
 
 export function NewDonationPage() {
   const { session } = useAuth();
@@ -19,7 +20,7 @@ export function NewDonationPage() {
       showToast('success', 'Draft created. Add photos, then publish when ready.');
       navigate(`/donations/${donation.id}/edit`, { replace: true });
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not create donation.');
+      showToast('error', getErrorMessage(err, 'Could not create donation.'));
     } finally {
       setSubmitting(false);
     }

@@ -28,6 +28,15 @@ This README is the complete setup guide. Follow it in order — later steps depe
 Do not use the **service_role** key anywhere in this frontend project — it must never appear
 in client code or `VITE_`-prefixed environment variables.
 
+**Optional — skip email confirmation on signup** (handy for local development/testing; think
+twice before leaving this off in a real production launch, since it lets people sign up with
+addresses they don't actually control):
+
+- Dashboard → **Authentication → Sign In / Providers → Email** → turn **off** "Confirm email".
+- No app code change is needed either way — `SignupForm` already checks whether Supabase
+  returned an active session on signup and routes straight into the app when it does, or shows
+  a "check your email" screen when it doesn't. It adapts automatically to this setting.
+
 ---
 
 ## 3. Apply the database migrations

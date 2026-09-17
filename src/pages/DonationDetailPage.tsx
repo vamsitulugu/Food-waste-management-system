@@ -14,6 +14,7 @@ import { ClaimList } from '../components/claims/ClaimList';
 import { ClaimStatusBadge } from '../components/claims/ClaimStatusBadge';
 import { ReportDonationButton } from '../components/donations/ReportDonationButton';
 import { SaveDonationButton } from '../components/donations/SaveDonationButton';
+import { DonationStatusTimeline } from '../components/donations/DonationStatusTimeline';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/States';
@@ -23,6 +24,7 @@ import {
   PICKUP_TASK_STATUS_LABELS,
   FULFILLMENT_METHOD_LABELS,
 } from '../types/domain';
+import { getErrorMessage } from '../utils/errors';
 
 export function DonationDetailPage() {
   const { donationId } = useParams<{ donationId: string }>();
@@ -83,7 +85,7 @@ export function DonationDetailPage() {
       showToast('success', 'Claim withdrawn.');
       refreshAll();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not withdraw claim.');
+      showToast('error', getErrorMessage(err, 'Could not withdraw claim.'));
     } finally {
       setCancellingClaim(false);
     }
@@ -97,7 +99,7 @@ export function DonationDetailPage() {
       showToast('success', 'Marked as picked up. Thank you!');
       refreshAll();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not confirm pickup.');
+      showToast('error', getErrorMessage(err, 'Could not confirm pickup.'));
     } finally {
       setConfirming(false);
     }
@@ -112,7 +114,7 @@ export function DonationDetailPage() {
       showToast('success', 'Delivery confirmed. Thank you!');
       refreshAll();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not confirm delivery.');
+      showToast('error', getErrorMessage(err, 'Could not confirm delivery.'));
     } finally {
       setConfirming(false);
     }
@@ -128,6 +130,15 @@ export function DonationDetailPage() {
       {!isDonor && (
         <div className="mt-3">
           <SaveDonationButton donationId={donation.id} />
+        </div>
+      )}
+
+      {donation.status !== 'draft' && (
+        <div className="mt-5 rounded-lg border border-base-700 bg-base-900 px-4 py-5">
+          <DonationStatusTimeline
+            status={donation.status}
+            fulfillmentMethod={acceptedClaim?.fulfillmentMethod ?? myClaim?.fulfillmentMethod}
+          />
         </div>
       )}
 
@@ -176,7 +187,7 @@ export function DonationDetailPage() {
       </p>
 
       {!isDonor && donation.status === 'available' && !myClaim && (
-        <div className="mt-6">
+        <div className="sticky bottom-16 z-10 -mx-4 mt-6 bg-gradient-to-t from-base-950 via-base-950 to-transparent px-4 pb-3 pt-6 md:static md:mx-0 md:bg-none md:px-0 md:pb-0 md:pt-0">
           <ClaimButton donationId={donation.id} onClaimed={refreshAll} />
         </div>
       )}

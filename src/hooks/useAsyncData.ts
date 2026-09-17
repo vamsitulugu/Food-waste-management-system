@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getErrorMessage } from '../utils/errors';
 
 interface AsyncState<T> {
   data: T | null;
@@ -24,7 +25,7 @@ export function useAsyncData<T>(fetcher: () => Promise<T>, deps: unknown[] = [])
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+          const message = getErrorMessage(err, 'Something went wrong. Please try again.');
           setState({ data: null, loading: false, error: message });
         }
       });

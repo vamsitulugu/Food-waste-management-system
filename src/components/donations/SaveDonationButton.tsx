@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { isDonationSaved, saveDonation, unsaveDonation } from '../../api/savedDonations';
+import { getErrorMessage } from '../../utils/errors';
 
 export function SaveDonationButton({ donationId }: { donationId: string }) {
   const { session } = useAuth();
@@ -38,7 +39,7 @@ export function SaveDonationButton({ donationId }: { donationId: string }) {
         setSaved(true);
       }
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update saved donations.');
+      showToast('error', getErrorMessage(err, 'Could not update saved donations.'));
     } finally {
       setToggling(false);
     }

@@ -10,6 +10,7 @@ import { updateProfile, fetchPhone, updatePhone, deactivateAccount } from '../ap
 import { uploadAvatar, getAvatarUrl, deleteAvatarFile, validateImageFile } from '../api/storage';
 import { signOut } from '../api/auth';
 import { roleLabel } from '../types/domain';
+import { getErrorMessage } from '../utils/errors';
 
 export function ProfilePage() {
   const { profile, session, refreshProfile } = useAuth();
@@ -84,7 +85,7 @@ export function ProfilePage() {
       await refreshProfile();
       showToast('success', 'Profile photo updated.');
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update photo.');
+      showToast('error', getErrorMessage(err, 'Could not update photo.'));
     } finally {
       setUploadingAvatar(false);
     }
@@ -104,7 +105,7 @@ export function ProfilePage() {
       await refreshProfile();
       showToast('success', 'Profile updated.');
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update profile.');
+      showToast('error', getErrorMessage(err, 'Could not update profile.'));
     } finally {
       setSavingProfile(false);
     }
@@ -117,7 +118,7 @@ export function ProfilePage() {
       await updatePhone(session!.user.id, phone.trim() || null);
       showToast('success', 'Phone number updated.');
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update phone number.');
+      showToast('error', getErrorMessage(err, 'Could not update phone number.'));
     } finally {
       setSavingPhone(false);
     }
@@ -130,7 +131,7 @@ export function ProfilePage() {
       await signOut();
       navigate('/', { replace: true });
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not deactivate account.');
+      showToast('error', getErrorMessage(err, 'Could not deactivate account.'));
       setDeactivating(false);
     }
   }
@@ -219,6 +220,19 @@ export function ProfilePage() {
           </>
         )}
       </form>
+
+      <div className="md:hidden">
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={async () => {
+            await signOut();
+            navigate('/login', { replace: true });
+          }}
+        >
+          Sign out
+        </Button>
+      </div>
 
       <div className="rounded-lg border border-danger-500/30 bg-base-900 p-6">
         <h2 className="text-sm font-medium text-ink-100">Deactivate account</h2>

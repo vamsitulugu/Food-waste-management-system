@@ -17,6 +17,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/States';
 import { ORG_TYPE_LABELS, ORG_VERIFICATION_LABELS } from '../types/domain';
 import type { OrgMemberRole } from '../types/database';
+import { getErrorMessage } from '../utils/errors';
 
 const VERIFICATION_BADGE: Record<string, string> = {
   verified: 'text-brand-400',
@@ -63,7 +64,7 @@ export function OrganizationDetailPage() {
       showToast('success', 'Member added.');
       refetchMembers();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not add member.');
+      showToast('error', getErrorMessage(err, 'Could not add member.'));
     } finally {
       setInviting(false);
     }
@@ -75,7 +76,7 @@ export function OrganizationDetailPage() {
       showToast('success', 'Member role updated.');
       refetchMembers();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update role.');
+      showToast('error', getErrorMessage(err, 'Could not update role.'));
     }
   }
 
@@ -85,7 +86,7 @@ export function OrganizationDetailPage() {
       showToast('success', 'Member removed.');
       refetchMembers();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not remove member.');
+      showToast('error', getErrorMessage(err, 'Could not remove member.'));
     }
   }
 

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { fetchMyOrganizations } from '../api/organizations';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { ListRowSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { Button } from '../components/common/Button';
 import { ORG_TYPE_LABELS, ORG_VERIFICATION_LABELS } from '../types/domain';
@@ -30,7 +30,13 @@ export function OrganizationsPage() {
         </Link>
       </div>
 
-      {loading && <LoadingSpinner label="Loading organizations" />}
+      {loading && (
+        <div className="flex flex-col gap-2">
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+        </div>
+      )}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && orgs && orgs.length === 0 && (

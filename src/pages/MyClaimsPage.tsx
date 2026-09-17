@@ -4,7 +4,7 @@ import { useAsyncData } from '../hooks/useAsyncData';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
 import { fetchMyClaims } from '../api/claims';
 import { ClaimStatusBadge } from '../components/claims/ClaimStatusBadge';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { ListRowSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { FULFILLMENT_METHOD_LABELS } from '../types/domain';
 
@@ -24,7 +24,13 @@ export function MyClaimsPage() {
         <p className="mt-1 text-sm text-ink-500">Donations you've claimed or requested.</p>
       </div>
 
-      {loading && <LoadingSpinner label="Loading requests" />}
+      {loading && (
+        <div className="flex flex-col gap-2">
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+        </div>
+      )}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && claims && claims.length === 0 && (

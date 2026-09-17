@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { submitReport } from '../../api/reports';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
+import { getErrorMessage } from '../../utils/errors';
 
 export function ReportDonationButton({ donationId }: { donationId: string }) {
   const { session } = useAuth();
@@ -24,7 +25,7 @@ export function ReportDonationButton({ donationId }: { donationId: string }) {
       setSubmitted(true);
       showToast('success', 'Report submitted. Thank you.');
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not submit report.');
+      showToast('error', getErrorMessage(err, 'Could not submit report.'));
     } finally {
       setSubmitting(false);
     }

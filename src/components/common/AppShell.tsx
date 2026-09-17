@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { roleLabel } from '../../types/domain';
 import { Button } from './Button';
 import { NotificationBell } from '../notifications/NotificationBell';
+import { BottomNav } from './BottomNav';
 
 export function AppShell() {
   const { profile } = useAuth();
@@ -43,7 +44,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-base-950">
-      <header className="border-b border-base-700 bg-base-900">
+      <header className="sticky top-0 z-20 border-b border-base-700 bg-base-900/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-8">
             <Link to="/dashboard" className="font-display text-lg text-ink-100">
@@ -60,27 +61,21 @@ export function AppShell() {
           {profile && (
             <div className="flex items-center gap-3">
               <NotificationBell />
-              <Link to="/profile" className="text-right">
+              <Link to="/profile" className="hidden text-right sm:block">
                 <p className="text-sm text-ink-100">{profile.fullName}</p>
                 <p className="text-xs text-ink-500">{roleLabel(profile.role)}</p>
               </Link>
-              <Button variant="secondary" onClick={handleSignOut}>
+              <Button variant="secondary" onClick={handleSignOut} className="hidden md:inline-flex">
                 Sign out
               </Button>
             </div>
           )}
         </div>
-        <nav className="flex flex-wrap gap-4 border-t border-base-800 px-4 py-2 text-sm text-ink-300 md:hidden">
-          {navLinks.map((link) => (
-            <Link key={link.to} to={link.to} className="hover:text-ink-100">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-8">
         <Outlet />
       </main>
+      <BottomNav />
     </div>
   );
 }

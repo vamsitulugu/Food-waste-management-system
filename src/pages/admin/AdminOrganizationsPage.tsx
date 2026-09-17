@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState, ErrorState } from '../../components/common/States';
 import { ORG_TYPE_LABELS, ORG_VERIFICATION_LABELS } from '../../types/domain';
 import type { OrgVerificationStatus } from '../../types/database';
+import { getErrorMessage } from '../../utils/errors';
 
 export function AdminOrganizationsPage() {
   const [filter, setFilter] = useState<OrgVerificationStatus | undefined>('pending');
@@ -24,7 +25,7 @@ export function AdminOrganizationsPage() {
       showToast('success', `Organization ${ORG_VERIFICATION_LABELS[decision].toLowerCase()}.`);
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update organization.');
+      showToast('error', getErrorMessage(err, 'Could not update organization.'));
     } finally {
       setActingOn(null);
     }

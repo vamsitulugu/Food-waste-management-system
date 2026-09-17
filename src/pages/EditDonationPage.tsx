@@ -12,6 +12,7 @@ import { ErrorState } from '../components/common/States';
 import { Input } from '../components/common/Input';
 import { fetchDonation, updateDonation, publishDonation, cancelDonation } from '../api/donations';
 import type { DonationInput } from '../api/donations';
+import { getErrorMessage } from '../utils/errors';
 
 export function EditDonationPage() {
   const { donationId } = useParams<{ donationId: string }>();
@@ -44,7 +45,7 @@ export function EditDonationPage() {
       showToast('success', 'Donation updated.');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update donation.');
+      showToast('error', getErrorMessage(err, 'Could not update donation.'));
     } finally {
       setSavingContent(false);
     }
@@ -57,7 +58,7 @@ export function EditDonationPage() {
       showToast('success', 'Donation published. It is now visible to recipients.');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not publish donation.');
+      showToast('error', getErrorMessage(err, 'Could not publish donation.'));
     } finally {
       setPublishing(false);
     }
@@ -74,7 +75,7 @@ export function EditDonationPage() {
       showToast('success', 'Donation cancelled.');
       navigate('/my-donations', { replace: true });
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not cancel donation.');
+      showToast('error', getErrorMessage(err, 'Could not cancel donation.'));
       setCancelling(false);
     }
   }

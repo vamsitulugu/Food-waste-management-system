@@ -8,6 +8,7 @@ import { Input } from '../../components/common/Input';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState, ErrorState } from '../../components/common/States';
 import { REPORT_STATUS_LABELS } from '../../types/domain';
+import { getErrorMessage } from '../../utils/errors';
 
 export function AdminReportsPage() {
   const { data: reports, loading, error, refetch } = useAsyncData(() => fetchReports('open'));
@@ -23,7 +24,7 @@ export function AdminReportsPage() {
       showToast('success', 'Report dismissed.');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update report.');
+      showToast('error', getErrorMessage(err, 'Could not update report.'));
     } finally {
       setActingOn(null);
     }
@@ -43,7 +44,7 @@ export function AdminReportsPage() {
       setRejectReason('');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not remove donation.');
+      showToast('error', getErrorMessage(err, 'Could not remove donation.'));
     } finally {
       setActingOn(null);
     }

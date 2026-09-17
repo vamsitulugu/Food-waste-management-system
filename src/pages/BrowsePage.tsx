@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MapPin } from 'lucide-react';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
 import { useGeolocation } from '../hooks/useGeolocation';
-import { fetchAvailableDonations, fetchNearbyDonations } from '../api/donations';
+import { fetchAvailableDonations, fetchNearbyDonations, fetchPrimaryImageUrls } from '../api/donations';
 import type { BrowseFilters } from '../api/donations';
 import { DonationCard } from '../components/donations/DonationCard';
 import { DonationFilters } from '../components/donations/DonationFilters';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { DonationGridSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { Button } from '../components/common/Button';
 
@@ -15,6 +16,7 @@ const NEARBY_RADIUS_M = 15000;
 export function BrowsePage() {
   const [filters, setFilters] = useState<BrowseFilters>({ sortBy: 'newest' });
   const [nearbyMode, setNearbyMode] = useState(false);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const { coords, loading: locLoading, error: locError, requestLocation } = useGeolocation();
 
   const {
@@ -31,6 +33,19 @@ export function BrowsePage() {
   );
 
   useRealtimeTable('donations', refetch, { filter: 'status=eq.available' });
+
+  useEffect(() => {
+    if (!donations || donations.length === 0) return;
+    let cancelled = false;
+    fetchPrimaryImageUrls(donations.map((d) => d.id))
+      .then((urls) => {
+        if (!cancelled) setImageUrls(urls);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [donations]);
 
   const visible =
     nearbyMode && donations
@@ -49,20 +64,26 @@ export function BrowsePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl text-ink-100">Available donations</h1>
-        <p className="mt-1 text-sm text-ink-500">Browse surplus food currently available for pickup.</p>
-      </div>
-
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <DonationFilters filters={filters} onChange={setFilters} />
-        <Button variant={nearbyMode ? 'primary' : 'secondary'} onClick={toggleNearby} loading={locLoading}>
-          {nearbyMode ? 'Showing nearby (15km)' : 'Show donations near me'}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl text-ink-100">Find food near you</h1>
+          <p className="mt-1 text-sm text-ink-500">Surplus food currently available for pickup.</p>
+        </div>
+        <Button
+          variant={nearbyMode ? 'primary' : 'secondary'}
+          onClick={toggleNearby}
+          loading={locLoading}
+          className="inline-flex items-center gap-1.5"
+        >
+          <MapPin size={15} />
+          {nearbyMode ? 'Near me (15km)' : 'Use my location'}
         </Button>
       </div>
+
+      <DonationFilters filters={filters} onChange={setFilters} />
       {locError && <p className="text-sm text-danger-400">{locError}</p>}
 
-      {loading && <LoadingSpinner label="Loading donations" />}
+      {loading && <DonationGridSkeleton count={6} />}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && visible && visible.length === 0 && (
@@ -75,7 +96,7 @@ export function BrowsePage() {
       {!loading && !error && visible && visible.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((d) => (
-            <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} />
+            <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
           ))}
         </div>
       )}

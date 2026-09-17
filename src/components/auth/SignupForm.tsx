@@ -5,6 +5,7 @@ import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { signUp } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
+import { getErrorMessage } from '../../utils/errors';
 
 interface FieldErrors {
   fullName?: string;
@@ -52,7 +53,7 @@ export function SignupForm() {
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Sign up failed. Please try again.';
+      const message = getErrorMessage(err, 'Sign up failed. Please try again.');
       showToast('error', message);
     } finally {
       setSubmitting(false);

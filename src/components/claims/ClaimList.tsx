@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { acceptClaim, rejectClaim } from '../../api/claims';
 import { FULFILLMENT_METHOD_LABELS } from '../../types/domain';
 import type { DonationClaim } from '../../types/domain';
+import { getErrorMessage } from '../../utils/errors';
 
 export function ClaimList({
   claims,
@@ -25,7 +26,7 @@ export function ClaimList({
       showToast('success', 'Claim accepted.');
       onChange();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not accept claim.');
+      showToast('error', getErrorMessage(err, 'Could not accept claim.'));
     } finally {
       setActingOn(null);
     }
@@ -38,7 +39,7 @@ export function ClaimList({
       showToast('success', 'Claim declined.');
       onChange();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not decline claim.');
+      showToast('error', getErrorMessage(err, 'Could not decline claim.'));
     } finally {
       setActingOn(null);
     }

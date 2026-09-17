@@ -1,8 +1,30 @@
+import { Search, Leaf } from 'lucide-react';
 import { FOOD_CATEGORY_LABELS } from '../../types/domain';
 import type { FoodCategory } from '../../types/database';
 import type { BrowseFilters } from '../../api/donations';
 
 const CATEGORIES = Object.keys(FOOD_CATEGORY_LABELS) as FoodCategory[];
+
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm transition-colors
+        ${active ? 'border-brand-400 bg-brand-700/20 text-brand-300' : 'border-base-700 text-ink-300 hover:border-base-600'}`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function DonationFilters({
   filters,
@@ -12,73 +34,42 @@ export function DonationFilters({
   onChange: (next: BrowseFilters) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="filter-search" className="text-xs text-ink-500">
-          Search
-        </label>
+    <div className="flex flex-col gap-3">
+      <div className="relative">
+        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-700" />
         <input
-          id="filter-search"
           value={filters.search ?? ''}
           onChange={(e) => onChange({ ...filters, search: e.target.value || undefined })}
-          placeholder="Title contains…"
-          className="rounded-md border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100 outline-none focus:border-brand-400"
+          placeholder="Search donations…"
+          className="w-full rounded-full border border-base-700 bg-base-900 py-2.5 pl-9 pr-4 text-sm text-ink-100 outline-none placeholder:text-ink-700 focus:border-brand-400"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="filter-category" className="text-xs text-ink-500">
-          Category
-        </label>
-        <select
-          id="filter-category"
-          value={filters.category ?? ''}
-          onChange={(e) => onChange({ ...filters, category: (e.target.value || undefined) as FoodCategory | undefined })}
-          className="rounded-md border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
+      <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
+        <Chip active={!filters.category} onClick={() => onChange({ ...filters, category: undefined })}>
+          All
+        </Chip>
+        {CATEGORIES.map((c) => (
+          <Chip key={c} active={filters.category === c} onClick={() => onChange({ ...filters, category: c })}>
+            {FOOD_CATEGORY_LABELS[c]}
+          </Chip>
+        ))}
+        <Chip
+          active={filters.isVegetarian === true}
+          onClick={() => onChange({ ...filters, isVegetarian: filters.isVegetarian === true ? undefined : true })}
         >
-          <option value="">Any</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {FOOD_CATEGORY_LABELS[c]}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="filter-veg" className="text-xs text-ink-500">
-          Diet
-        </label>
-        <select
-          id="filter-veg"
-          value={filters.isVegetarian === undefined ? '' : filters.isVegetarian ? 'yes' : 'no'}
-          onChange={(e) =>
-            onChange({
-              ...filters,
-              isVegetarian: e.target.value === '' ? undefined : e.target.value === 'yes',
-            })
+          <span className="inline-flex items-center gap-1">
+            <Leaf size={13} /> Veg only
+          </span>
+        </Chip>
+        <Chip
+          active={filters.sortBy === 'expiring_soon'}
+          onClick={() =>
+            onChange({ ...filters, sortBy: filters.sortBy === 'expiring_soon' ? 'newest' : 'expiring_soon' })
           }
-          className="rounded-md border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
         >
-          <option value="">Any</option>
-          <option value="yes">Vegetarian</option>
-          <option value="no">Non-vegetarian</option>
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="filter-sort" className="text-xs text-ink-500">
-          Sort by
-        </label>
-        <select
-          id="filter-sort"
-          value={filters.sortBy ?? 'newest'}
-          onChange={(e) => onChange({ ...filters, sortBy: e.target.value as BrowseFilters['sortBy'] })}
-          className="rounded-md border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
-        >
-          <option value="newest">Newest first</option>
-          <option value="expiring_soon">Pickup deadline soonest</option>
-        </select>
+          Ending soon
+        </Chip>
       </div>
     </div>
   );

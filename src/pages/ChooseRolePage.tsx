@@ -6,6 +6,7 @@ import { RoleSelector } from '../components/auth/RoleSelector';
 import { Button } from '../components/common/Button';
 import { setInitialRole } from '../api/profile';
 import type { UserRole } from '../types/database';
+import { getErrorMessage } from '../utils/errors';
 
 export function ChooseRolePage() {
   const { profile, refreshProfile } = useAuth();
@@ -33,7 +34,7 @@ export function ChooseRolePage() {
       await refreshProfile();
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not save your choice.');
+      showToast('error', getErrorMessage(err, 'Could not save your choice.'));
     } finally {
       setSubmitting(false);
     }

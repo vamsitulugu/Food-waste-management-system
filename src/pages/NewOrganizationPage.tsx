@@ -8,6 +8,7 @@ import { Button } from '../components/common/Button';
 import { createOrganization } from '../api/organizations';
 import { ORG_TYPE_LABELS } from '../types/domain';
 import type { OrgType } from '../types/database';
+import { getErrorMessage } from '../utils/errors';
 
 const ORG_TYPES = Object.keys(ORG_TYPE_LABELS) as OrgType[];
 
@@ -44,7 +45,7 @@ export function NewOrganizationPage() {
       showToast('success', 'Organization created. You are its owner.');
       navigate(`/organizations/${org.id}`, { replace: true });
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not create organization.');
+      showToast('error', getErrorMessage(err, 'Could not create organization.'));
     } finally {
       setSubmitting(false);
     }

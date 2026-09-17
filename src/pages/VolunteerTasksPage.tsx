@@ -6,6 +6,7 @@ import { fetchOpenTasks, acceptPickupTask } from '../api/tasks';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState, ErrorState } from '../components/common/States';
+import { getErrorMessage } from '../utils/errors';
 
 export function VolunteerTasksPage() {
   const { data: tasks, loading, error, refetch } = useAsyncData(fetchOpenTasks);
@@ -21,7 +22,7 @@ export function VolunteerTasksPage() {
       showToast('success', 'Task accepted. Check "My tasks" to get started.');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'This task is no longer available.');
+      showToast('error', getErrorMessage(err, 'This task is no longer available.'));
       refetch();
     } finally {
       setAccepting(null);

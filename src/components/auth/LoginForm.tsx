@@ -5,6 +5,7 @@ import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { signIn } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
+import { getErrorMessage } from '../../utils/errors';
 
 interface FieldErrors {
   email?: string;
@@ -45,7 +46,7 @@ export function LoginForm() {
       // Supabase returns "Invalid login credentials" for both wrong password
       // and unknown email — intentionally not distinguishing here either,
       // to avoid leaking which emails are registered.
-      const message = err instanceof Error ? err.message : 'Sign in failed. Please try again.';
+      const message = getErrorMessage(err, 'Sign in failed. Please try again.');
       showToast('error', message);
     } finally {
       setSubmitting(false);

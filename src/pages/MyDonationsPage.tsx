@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAsyncData } from '../hooks/useAsyncData';
-import { fetchMyDonations, isDonationStatusOf } from '../api/donations';
+import { fetchMyDonations, fetchPrimaryImageUrls, isDonationStatusOf } from '../api/donations';
 import { DonationCard } from '../components/donations/DonationCard';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { DonationGridSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { Button } from '../components/common/Button';
 
@@ -13,6 +15,18 @@ export function MyDonationsPage() {
     () => fetchMyDonations(session!.user.id),
     [session?.user.id]
   );
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!donations || donations.length === 0) return;
+    let cancelled = false;
+    fetchPrimaryImageUrls(donations.map((d) => d.id)).then((urls) => {
+      if (!cancelled) setImageUrls(urls);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [donations]);
 
   const active = donations?.filter((d) => isDonationStatusOf(d.status, 'active')) ?? [];
   const past = donations?.filter((d) => isDonationStatusOf(d.status, 'terminal')) ?? [];
@@ -22,11 +36,13 @@ export function MyDonationsPage() {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-ink-100">My donations</h1>
         <Link to="/donations/new">
-          <Button>New donation</Button>
+          <Button className="inline-flex items-center gap-1.5">
+            <Plus size={16} /> New donation
+          </Button>
         </Link>
       </div>
 
-      {loading && <LoadingSpinner label="Loading donations" />}
+      {loading && <DonationGridSkeleton count={4} />}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && donations && donations.length === 0 && (
@@ -44,9 +60,9 @@ export function MyDonationsPage() {
       {active.length > 0 && (
         <div>
           <h2 className="mb-3 text-sm font-medium text-ink-300">Active</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {active.map((d) => (
-              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}/edit`} />
+              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}/edit`} imageUrl={imageUrls[d.id]} />
             ))}
           </div>
         </div>
@@ -55,9 +71,9 @@ export function MyDonationsPage() {
       {past.length > 0 && (
         <div>
           <h2 className="mb-3 text-sm font-medium text-ink-300">History</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((d) => (
-              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} />
+              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
             ))}
           </div>
         </div>

@@ -10,6 +10,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState, ErrorState } from '../../components/common/States';
 import { DONATION_STATUS_LABELS } from '../../types/domain';
 import type { DonationStatus } from '../../types/database';
+import { getErrorMessage } from '../../utils/errors';
 
 const STATUSES = Object.keys(DONATION_STATUS_LABELS) as DonationStatus[];
 
@@ -38,7 +39,7 @@ export function AdminDonationsPage() {
       setReason('');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not remove donation.');
+      showToast('error', getErrorMessage(err, 'Could not remove donation.'));
     } finally {
       setSubmitting(false);
     }

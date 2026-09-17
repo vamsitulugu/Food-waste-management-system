@@ -7,6 +7,7 @@ import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorState } from '../../components/common/States';
 import { roleLabel } from '../../types/domain';
+import { getErrorMessage } from '../../utils/errors';
 
 export function AdminUsersPage() {
   const { data: users, loading, error, refetch } = useAsyncData(fetchAllUsers);
@@ -20,7 +21,7 @@ export function AdminUsersPage() {
       showToast('success', 'Account deactivated.');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not deactivate account.');
+      showToast('error', getErrorMessage(err, 'Could not deactivate account.'));
     } finally {
       setActingOn(null);
     }
@@ -33,7 +34,7 @@ export function AdminUsersPage() {
       showToast('success', 'User promoted to admin.');
       refetch();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not promote user.');
+      showToast('error', getErrorMessage(err, 'Could not promote user.'));
     } finally {
       setActingOn(null);
     }

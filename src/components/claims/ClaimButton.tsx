@@ -7,6 +7,7 @@ import { createClaim } from '../../api/claims';
 import { fetchMyOrganizations } from '../../api/organizations';
 import { FULFILLMENT_METHOD_LABELS } from '../../types/domain';
 import type { FulfillmentMethod } from '../../types/database';
+import { getErrorMessage } from '../../utils/errors';
 
 const METHODS = Object.keys(FULFILLMENT_METHOD_LABELS) as FulfillmentMethod[];
 
@@ -28,7 +29,7 @@ export function ClaimButton({ donationId, onClaimed }: { donationId: string; onC
       setExpanded(false);
       onClaimed();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not submit claim.');
+      showToast('error', getErrorMessage(err, 'Could not submit claim.'));
     } finally {
       setSubmitting(false);
     }

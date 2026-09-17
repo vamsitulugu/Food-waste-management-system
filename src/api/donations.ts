@@ -212,6 +212,36 @@ export async function setPrimaryImage(donationId: string, imageId: string) {
   if (error) throw error;
 }
 
+export async function fetchPrimaryImageUrls(donationIds: string[]): Promise<Record<string, string>> {
+  if (donationIds.length === 0) return {};
+
+  const { data: images, error } = await supabase
+    .from('donation_images')
+    .select('donation_id, storage_path')
+    .in('donation_id', donationIds)
+    .eq('is_primary', true);
+  if (error) throw error;
+  if (!images || images.length === 0) return {};
+
+  const paths = images.map((img) => img.storage_path);
+  const { data: signed, error: signError } = await supabase.storage
+    .from('donation-images')
+    .createSignedUrls(paths, 60 * 60);
+  if (signError) throw signError;
+
+  const pathToUrl = new Map<string, string>();
+  (signed ?? []).forEach((s) => {
+    if (s.path && s.signedUrl) pathToUrl.set(s.path, s.signedUrl);
+  });
+
+  const result: Record<string, string> = {};
+  images.forEach((img) => {
+    const url = pathToUrl.get(img.storage_path);
+    if (url) result[img.donation_id] = url;
+  });
+  return result;
+}
+
 export function isDonationStatusOf(status: DonationStatus, group: 'active' | 'terminal'): boolean {
   const terminal: DonationStatus[] = ['completed', 'cancelled', 'expired', 'rejected'];
   return group === 'terminal' ? terminal.includes(status) : !terminal.includes(status);

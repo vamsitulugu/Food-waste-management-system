@@ -17,6 +17,7 @@ import {
 } from '../../api/storage';
 import type { DonationImage } from '../../types/domain';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import { getErrorMessage } from '../../utils/errors';
 
 export function DonationImageUploader({ donationId }: { donationId: string }) {
   const { session } = useAuth();
@@ -77,7 +78,7 @@ export function DonationImageUploader({ donationId }: { donationId: string }) {
       await loadImages();
       showToast('success', 'Image uploaded.');
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Upload failed.');
+      showToast('error', getErrorMessage(err, 'Upload failed.'));
     } finally {
       setUploading(false);
     }
@@ -89,7 +90,7 @@ export function DonationImageUploader({ donationId }: { donationId: string }) {
       await deleteDonationImageFile(image.storagePath);
       await loadImages();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not delete image.');
+      showToast('error', getErrorMessage(err, 'Could not delete image.'));
     }
   }
 
@@ -98,7 +99,7 @@ export function DonationImageUploader({ donationId }: { donationId: string }) {
       await setPrimaryImage(donationId, image.id);
       await loadImages();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Could not update primary image.');
+      showToast('error', getErrorMessage(err, 'Could not update primary image.'));
     }
   }
 

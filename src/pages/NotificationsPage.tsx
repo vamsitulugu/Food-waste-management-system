@@ -8,7 +8,7 @@ import {
   markAllNotificationsRead,
   deleteNotification,
 } from '../api/notifications';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { ListRowSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { Button } from '../components/common/Button';
 
@@ -60,7 +60,13 @@ export function NotificationsPage() {
         )}
       </div>
 
-      {loading && <LoadingSpinner label="Loading notifications" />}
+      {loading && (
+        <div className="flex flex-col gap-2">
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+          <ListRowSkeleton />
+        </div>
+      )}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && notifications && notifications.length === 0 && (
