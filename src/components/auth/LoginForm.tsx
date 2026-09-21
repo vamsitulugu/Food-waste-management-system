@@ -40,7 +40,7 @@ export function LoginForm() {
     setSubmitting(true);
     try {
       await signIn(email, password);
-      const redirectTo = (location.state as { from?: Location })?.from?.pathname ?? '/dashboard';
+      const redirectTo = (location.state as { from?: Location })?.from?.pathname ?? '/browse';
       navigate(redirectTo, { replace: true });
     } catch (err) {
       // Supabase returns "Invalid login credentials" for both wrong password

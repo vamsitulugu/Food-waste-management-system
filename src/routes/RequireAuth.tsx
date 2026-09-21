@@ -6,14 +6,11 @@ import type { UserRole } from '../types/database';
 
 interface RequireAuthProps {
   children: ReactNode;
-  /** If provided, only these roles may view the route. */
+  /** Only used for admin-only routes. Everyone else has the same access. */
   allowedRoles?: UserRole[];
-  /** Set false only for the /choose-role screen itself — every other
-   * authenticated route requires a role to already be chosen. */
-  requireRoleSelected?: boolean;
 }
 
-export function RequireAuth({ children, allowedRoles, requireRoleSelected = true }: RequireAuthProps) {
+export function RequireAuth({ children, allowedRoles }: RequireAuthProps) {
   const { session, profile, ready } = useAuth();
   const location = useLocation();
 
@@ -48,12 +45,8 @@ export function RequireAuth({ children, allowedRoles, requireRoleSelected = true
     );
   }
 
-  if (requireRoleSelected && !profile.role) {
-    return <Navigate to="/choose-role" replace />;
-  }
-
   if (allowedRoles && (!profile.role || !allowedRoles.includes(profile.role))) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/browse" replace />;
   }
 
   return <>{children}</>;

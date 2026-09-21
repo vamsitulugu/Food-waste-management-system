@@ -10,12 +10,15 @@ import { DonationFilters } from '../components/donations/DonationFilters';
 import { DonationGridSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { Button } from '../components/common/Button';
+import { DonateCard } from '../components/donations/DonateCard';
+import { DonateModal } from '../components/donations/DonateModal';
 
 const NEARBY_RADIUS_M = 15000;
 
 export function BrowsePage() {
   const [filters, setFilters] = useState<BrowseFilters>({ sortBy: 'newest' });
   const [nearbyMode, setNearbyMode] = useState(false);
+  const [donateOpen, setDonateOpen] = useState(false);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const { coords, loading: locLoading, error: locError, requestLocation } = useGeolocation();
 
@@ -63,10 +66,20 @@ export function BrowsePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-7">
+      <DonateCard onClick={() => setDonateOpen(true)} />
+      <DonateModal
+        open={donateOpen}
+        onClose={() => setDonateOpen(false)}
+        onPosted={() => {
+          setDonateOpen(false);
+          refetch();
+        }}
+      />
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl text-ink-100">Find food near you</h1>
+          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Available food near you</h1>
           <p className="mt-1 text-sm font-medium text-ink-500">Surplus food currently available for pickup.</p>
         </div>
         <Button

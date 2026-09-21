@@ -2,19 +2,10 @@ import { Search, Leaf, Timer } from 'lucide-react';
 import { FOOD_CATEGORY_LABELS } from '../../types/domain';
 import type { FoodCategory } from '../../types/database';
 import type { BrowseFilters } from '../../api/donations';
+import { CATEGORY_EMOJI } from '../../utils/foodEmoji';
 
 const CATEGORIES = Object.keys(FOOD_CATEGORY_LABELS) as FoodCategory[];
 
-const CATEGORY_EMOJI: Record<FoodCategory, string> = {
-  cooked_meals: '🍛',
-  bakery: '🥐',
-  produce: '🥬',
-  dairy: '🥛',
-  packaged: '📦',
-  beverages: '🥤',
-  grains_staples: '🌾',
-  other: '🍽️',
-};
 
 function Pill({
   active,

@@ -49,8 +49,7 @@ export function SignupForm() {
         setAwaitingConfirmation(true);
       } else {
         showToast('success', 'Account created.');
-        // No role yet — RequireAuth sends them to /choose-role automatically.
-        navigate('/dashboard', { replace: true });
+        navigate('/browse', { replace: true });
       }
     } catch (err) {
       const message = getErrorMessage(err, 'Sign up failed. Please try again.');
@@ -65,8 +64,7 @@ export function SignupForm() {
       <div className="rounded-xl border border-base-700 bg-base-900 p-6 text-center">
         <p className="text-ink-100">Check your email to confirm your account.</p>
         <p className="mt-2 text-sm text-ink-500">
-          We sent a confirmation link to {email}. Once confirmed, sign in and you'll be asked
-          how you'd like to use the platform.
+          We sent a confirmation link to {email}. Once confirmed, just sign in and you're ready to go.
         </p>
       </div>
     );

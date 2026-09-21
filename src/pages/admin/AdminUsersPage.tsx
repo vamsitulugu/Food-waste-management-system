@@ -6,7 +6,6 @@ import { deactivateAccount } from '../../api/profile';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ErrorState } from '../../components/common/States';
-import { roleLabel } from '../../types/domain';
 import { getErrorMessage } from '../../utils/errors';
 
 export function AdminUsersPage() {
@@ -54,7 +53,7 @@ export function AdminUsersPage() {
               <div>
                 <p className="text-sm text-ink-100">{u.fullName}</p>
                 <p className="text-xs text-ink-500">
-                  {u.role ? roleLabel(u.role) : 'No role chosen yet'} {!u.isActive && '· Deactivated'}
+                  {u.role === 'admin' ? 'Admin' : 'Member'} {!u.isActive && '· Deactivated'}
                 </p>
               </div>
               {u.isActive && u.role !== 'admin' && (

@@ -37,7 +37,7 @@ export function MyDonationsPage() {
         <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My donations</h1>
         <Link to="/donations/new">
           <Button className="inline-flex items-center gap-1.5">
-            <Plus size={16} /> New donation
+            <Plus size={16} /> Donate food
           </Button>
         </Link>
       </div>
@@ -47,11 +47,11 @@ export function MyDonationsPage() {
 
       {!loading && !error && donations && donations.length === 0 && (
         <EmptyState
-          title="You haven't posted any donations yet"
-          description="List surplus food to make it available to recipients and NGOs nearby."
+          title="You haven't donated anything yet"
+          description="Post extra food with a photo and a few details — it takes less than a minute."
           action={
             <Link to="/donations/new">
-              <Button variant="secondary">Create your first donation</Button>
+              <Button>Donate your first meal</Button>
             </Link>
           }
         />
@@ -59,10 +59,10 @@ export function MyDonationsPage() {
 
       {active.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-medium text-ink-300">Active</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="mb-4 font-display text-xl text-ink-100">Active</h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {active.map((d) => (
-              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}/edit`} imageUrl={imageUrls[d.id]} />
+              <DonationCard key={d.id} donation={d} linkTo={d.status === 'draft' ? `/donations/${d.id}/edit` : `/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
             ))}
           </div>
         </div>
@@ -70,8 +70,8 @@ export function MyDonationsPage() {
 
       {past.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-medium text-ink-300">History</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="mb-4 font-display text-xl text-ink-100">History</h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((d) => (
               <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
             ))}

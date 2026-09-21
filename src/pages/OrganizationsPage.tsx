@@ -57,7 +57,7 @@ export function OrganizationsPage() {
             <Link
               key={org.id}
               to={`/organizations/${org.id}`}
-              className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5 transition-colors hover:border-base-600"
+              className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
             >
               <div className="flex items-center justify-between">
                 <div>

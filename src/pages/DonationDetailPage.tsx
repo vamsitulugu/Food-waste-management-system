@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { ArrowLeft, Clock, ExternalLink, Leaf, MapPin, Package, Pencil, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useAsyncData } from '../hooks/useAsyncData';
@@ -25,6 +26,8 @@ import {
   FULFILLMENT_METHOD_LABELS,
 } from '../types/domain';
 import { getErrorMessage } from '../utils/errors';
+import { formatDateTime } from '../utils/formatDate';
+import { CATEGORY_EMOJI } from '../utils/foodEmoji';
 
 export function DonationDetailPage() {
   const { donationId } = useParams<{ donationId: string }>();
@@ -39,6 +42,7 @@ export function DonationDetailPage() {
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
   const [cancellingClaim, setCancellingClaim] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
 
   useRealtimeTable('donations', refetch, { filter: `id=eq.${donationId}` });
   useRealtimeTable('donation_claims', () => { refetchClaims(); refetch(); }, { filter: `donation_id=eq.${donationId}` });
@@ -120,21 +124,145 @@ export function DonationDetailPage() {
     }
   }
 
+  const gallery = (images ?? []).map((img) => imageUrls[img.id]).filter((u): u is string => Boolean(u));
+  const cover = gallery[Math.min(activeImage, Math.max(gallery.length - 1, 0))];
+  const canEdit = isDonor && (donation.status === 'draft' || donation.status === 'available');
+
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">{donation.title}</h1>
-        <DonationStatusBadge status={donation.status} />
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 flex items-center justify-between">
+        <Link to="/browse" className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-500 hover:text-ink-100">
+          <ArrowLeft size={16} /> Back
+        </Link>
+        {canEdit && (
+          <Link
+            to={`/donations/${donation.id}/edit`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-brand-500/40 bg-base-900 px-3.5 py-2 text-sm font-bold text-brand-400 hover:bg-brand-700/10"
+          >
+            <Pencil size={14} /> Edit or cancel
+          </Link>
+        )}
       </div>
 
-      {!isDonor && (
-        <div className="mt-3">
-          <SaveDonationButton donationId={donation.id} />
+      {/* Photo hero */}
+      <div className="overflow-hidden rounded-3xl bg-base-900 shadow-card">
+        <div className="relative h-64 w-full bg-base-800 sm:h-96">
+          {cover ? (
+            <img src={cover} alt={donation.title} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-brand-700/15 to-brand-600/10 text-brand-500/60">
+              <UtensilsCrossed size={44} strokeWidth={1.5} />
+              <span className="text-sm font-medium">No photo added</span>
+            </div>
+          )}
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
+          {donation.isVegetarian !== null && (
+            <span
+              className={`absolute left-4 top-4 flex h-6 w-6 items-center justify-center rounded-md border-2 bg-white ${
+                donation.isVegetarian ? 'border-success-500' : 'border-danger-500'
+              }`}
+              title={donation.isVegetarian ? 'Vegetarian' : 'Non-vegetarian'}
+            >
+              <span className={`h-2.5 w-2.5 rounded-full ${donation.isVegetarian ? 'bg-success-500' : 'bg-danger-500'}`} />
+            </span>
+          )}
+          <div className="absolute right-4 top-4">
+            <DonationStatusBadge status={donation.status} />
+          </div>
+        </div>
+
+        {gallery.length > 1 && (
+          <div className="scrollbar-none flex gap-2 overflow-x-auto p-3">
+            {gallery.map((url, i) => (
+              <button
+                key={url}
+                type="button"
+                onClick={() => setActiveImage(i)}
+                aria-label={`Show photo ${i + 1}`}
+                className={`h-16 w-20 shrink-0 overflow-hidden rounded-xl ring-2 transition-all ${
+                  i === activeImage ? 'ring-brand-500' : 'ring-transparent opacity-70 hover:opacity-100'
+                }`}
+              >
+                <img src={url} alt="" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Title */}
+      <div className="mt-5 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl leading-tight text-ink-100 sm:text-3xl">{donation.title}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            <span className="rounded-full bg-base-900 px-3 py-1 font-semibold text-ink-300 shadow-card">
+              {CATEGORY_EMOJI[donation.category]} {FOOD_CATEGORY_LABELS[donation.category]}
+            </span>
+            {donation.isVegetarian && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-success-500 px-3 py-1 font-bold text-white">
+                <Leaf size={13} /> Veg
+              </span>
+            )}
+          </div>
+        </div>
+        {!isDonor && <SaveDonationButton donationId={donation.id} />}
+      </div>
+
+      {/* Key facts */}
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-base-900 p-4 shadow-card">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-700">
+            <Package size={14} /> Quantity
+          </p>
+          <p className="font-display mt-1 text-xl text-ink-100">
+            {donation.quantityValue} {donation.quantityUnit}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-base-900 p-4 shadow-card">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-700">
+            <Clock size={14} /> Pick up by
+          </p>
+          <p className="font-display mt-1 text-xl text-ink-100">{formatDateTime(donation.pickupWindowEnd)}</p>
+        </div>
+        <div className="col-span-2 flex items-start justify-between gap-3 rounded-2xl bg-base-900 p-4 shadow-card">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-700">
+              <MapPin size={14} /> Pickup address
+            </p>
+            <p className="mt-1 text-sm font-medium text-ink-100">{donation.pickupAddress}</p>
+          </div>
+          <a
+            href={`https://www.google.com/maps?q=${donation.latitude},${donation.longitude}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-brand-700/10 px-3 py-2 text-xs font-bold text-brand-400 hover:bg-brand-700/15"
+          >
+            Map <ExternalLink size={12} />
+          </a>
+        </div>
+        {donation.storageRequirement && (
+          <div className="rounded-2xl bg-base-900 p-4 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">Storage</p>
+            <p className="mt-1 text-sm font-medium text-ink-100">{STORAGE_REQUIREMENT_LABELS[donation.storageRequirement]}</p>
+          </div>
+        )}
+        {donation.allergens && donation.allergens.length > 0 && (
+          <div className="rounded-2xl bg-base-900 p-4 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">Allergens</p>
+            <p className="mt-1 text-sm font-medium text-ink-100">{donation.allergens.join(', ')}</p>
+          </div>
+        )}
+      </div>
+
+      {donation.description && (
+        <div className="mt-3 rounded-2xl bg-base-900 p-4 shadow-card">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">Note from the donor</p>
+          <p className="mt-1 text-sm text-ink-300">{donation.description}</p>
         </div>
       )}
 
-      {donation.status !== 'draft' && (
-        <div className="mt-5 rounded-2xl border border-base-700 bg-base-900 shadow-card px-4 py-5">
+      {donation.status !== 'draft' && donation.status !== 'available' && (
+        <div className="mt-3 rounded-2xl bg-base-900 px-4 py-5 shadow-card">
           <DonationStatusTimeline
             status={donation.status}
             fulfillmentMethod={acceptedClaim?.fulfillmentMethod ?? myClaim?.fulfillmentMethod}
@@ -142,48 +270,9 @@ export function DonationDetailPage() {
         </div>
       )}
 
-      {images && images.length > 0 && (
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {images.map((img) =>
-            imageUrls[img.id] ? (
-              <img key={img.id} src={imageUrls[img.id]} alt={donation.title} className="h-32 w-full rounded-md object-cover" />
-            ) : null
-          )}
-        </div>
-      )}
-
-      {donation.description && <p className="mt-4 text-sm text-ink-300">{donation.description}</p>}
-
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <dt className="text-ink-500">Category</dt>
-        <dd className="text-ink-100">{FOOD_CATEGORY_LABELS[donation.category]}</dd>
-        <dt className="text-ink-500">Quantity</dt>
-        <dd className="text-ink-100">{donation.quantityValue} {donation.quantityUnit}</dd>
-        {donation.storageRequirement && (
-          <>
-            <dt className="text-ink-500">Storage</dt>
-            <dd className="text-ink-100">{STORAGE_REQUIREMENT_LABELS[donation.storageRequirement]}</dd>
-          </>
-        )}
-        {donation.allergens && donation.allergens.length > 0 && (
-          <>
-            <dt className="text-ink-500">Allergens</dt>
-            <dd className="text-ink-100">{donation.allergens.join(', ')}</dd>
-          </>
-        )}
-        <dt className="text-ink-500">Best before</dt>
-        <dd className="text-ink-100">{new Date(donation.expiresAt).toLocaleString()}</dd>
-        <dt className="text-ink-500">Pickup window</dt>
-        <dd className="text-ink-100">
-          {new Date(donation.pickupWindowStart).toLocaleString()} – {new Date(donation.pickupWindowEnd).toLocaleString()}
-        </dd>
-        <dt className="text-ink-500">Pickup address</dt>
-        <dd className="text-ink-100">{donation.pickupAddress}</dd>
-      </dl>
-
-      <p className="mt-4 rounded-xl border border-base-700 bg-base-900 px-4 py-3 text-xs text-ink-500">
-        Food safety information is provided by the donor and has not been independently verified.
-        Recipients and volunteers should use their own judgment.
+      <p className="mt-4 rounded-2xl bg-base-800 px-4 py-3 text-xs text-ink-500">
+        Food safety information is provided by the donor and has not been independently verified. Please use your own
+        judgment before eating.
       </p>
 
       {!isDonor && donation.status === 'available' && !myClaim && (

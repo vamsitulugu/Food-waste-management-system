@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Input } from '../components/common/Input';
@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { updateProfile, fetchPhone, updatePhone, deactivateAccount } from '../api/profile';
 import { uploadAvatar, getAvatarUrl, deleteAvatarFile, validateImageFile } from '../api/storage';
 import { signOut } from '../api/auth';
-import { roleLabel } from '../types/domain';
+import { Bookmark, Truck, Building2, Bell } from 'lucide-react';
 import { getErrorMessage } from '../utils/errors';
 
 export function ProfilePage() {
@@ -140,7 +140,27 @@ export function ProfilePage() {
     <div className="flex max-w-lg flex-col gap-8">
       <div>
         <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Your profile</h1>
-        <p className="mt-1 text-sm text-ink-500">{roleLabel(profile.role)}</p>
+        <p className="mt-1 text-sm text-ink-500">{profile.role === 'admin' ? 'Administrator' : 'Manage your account and shortcuts.'}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { to: '/saved', label: 'Saved', icon: Bookmark },
+          { to: '/volunteer/tasks', label: 'Deliveries', icon: Truck },
+          { to: '/organizations', label: 'Organizations', icon: Building2 },
+          { to: '/notifications', label: 'Notifications', icon: Bell },
+        ].map(({ to, label, icon: Icon }) => (
+          <Link
+            key={to}
+            to={to}
+            className="flex items-center gap-3 rounded-2xl bg-base-900 p-4 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-500">
+              <Icon size={19} />
+            </span>
+            <span className="text-sm font-bold text-ink-100">{label}</span>
+          </Link>
+        ))}
       </div>
 
       <div className="flex items-center gap-4 rounded-2xl border border-base-700 bg-base-900 shadow-card p-6">

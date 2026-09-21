@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { RequireAuth } from './routes/RequireAuth';
@@ -6,8 +6,6 @@ import { AppShell } from './components/common/AppShell';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
-import { ChooseRolePage } from './pages/ChooseRolePage';
-import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { OrganizationsPage } from './pages/OrganizationsPage';
 import { NewOrganizationPage } from './pages/NewOrganizationPage';
@@ -40,22 +38,13 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route
-              path="/choose-role"
-              element={
-                <RequireAuth requireRoleSelected={false}>
-                  <ChooseRolePage />
-                </RequireAuth>
-              }
-            />
-
-            <Route
               element={
                 <RequireAuth>
                   <AppShell />
                 </RequireAuth>
               }
             >
-              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<Navigate to="/browse" replace />} />
               <Route path="/profile" element={<ProfilePage />} />
 
               <Route path="/organizations" element={<OrganizationsPage />} />

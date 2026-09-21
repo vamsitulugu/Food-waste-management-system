@@ -1,9 +1,8 @@
 import { Outlet, useNavigate, Link, NavLink } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { signOut } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
-import { roleLabel } from '../../types/domain';
 import { Logo } from './Logo';
 import { NotificationBell } from '../notifications/NotificationBell';
 import { BottomNav } from './BottomNav';
@@ -22,23 +21,15 @@ export function AppShell() {
     }
   }
 
+  // Everyone has the same navigation — no account types.
   const navLinks: { to: string; label: string }[] = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/browse', label: 'Browse' },
+    { to: '/browse', label: 'Home' },
+    { to: '/my-donations', label: 'My Donations' },
+    { to: '/my-claims', label: 'My Requests' },
+    { to: '/saved', label: 'Saved' },
+    { to: '/volunteer/tasks', label: 'Deliveries' },
+    { to: '/organizations', label: 'Organizations' },
   ];
-
-  if (profile?.role === 'donor' || profile?.role === 'ngo') {
-    navLinks.push({ to: '/my-donations', label: 'My Donations' });
-  }
-  if (profile?.role === 'recipient' || profile?.role === 'ngo') {
-    navLinks.push({ to: '/my-claims', label: 'My Requests' });
-    navLinks.push({ to: '/saved', label: 'Saved' });
-  }
-  if (profile?.role === 'volunteer') {
-    navLinks.push({ to: '/volunteer/tasks', label: 'Open Tasks' });
-    navLinks.push({ to: '/volunteer/my-tasks', label: 'My Tasks' });
-  }
-  navLinks.push({ to: '/organizations', label: 'Organizations' });
   if (profile?.role === 'admin') {
     navLinks.push({ to: '/admin', label: 'Admin' });
   }
@@ -50,7 +41,7 @@ export function AppShell() {
       <header className="sticky top-0 z-20 bg-base-900 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-8">
-            <Link to="/dashboard" aria-label="Second Serving home">
+            <Link to="/browse" aria-label="Second Serving home">
               <Logo />
             </Link>
             <nav className="hidden items-center gap-1 text-sm font-semibold text-ink-300 md:flex">
@@ -71,6 +62,12 @@ export function AppShell() {
           </div>
           {profile && (
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                to="/donations/new"
+                className="hidden items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white shadow-md shadow-brand-500/25 transition-colors hover:bg-brand-400 md:inline-flex"
+              >
+                <Plus size={16} strokeWidth={3} /> Donate
+              </Link>
               <NotificationBell />
               <Link
                 to="/profile"
@@ -81,7 +78,7 @@ export function AppShell() {
                 </span>
                 <span className="hidden text-left leading-tight sm:block">
                   <span className="block text-sm font-semibold text-ink-100">{profile.fullName}</span>
-                  <span className="block text-xs text-ink-500">{roleLabel(profile.role)}</span>
+                  {profile.role === 'admin' && <span className="block text-xs text-ink-500">Admin</span>}
                 </span>
               </Link>
               <button
