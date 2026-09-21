@@ -20,7 +20,7 @@ export function MyTasksPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="font-display text-2xl text-ink-100">My delivery tasks</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My delivery tasks</h1>
 
       {loading && <LoadingSpinner label="Loading tasks" />}
       {error && <ErrorState message={error} onRetry={refetch} />}
@@ -34,7 +34,7 @@ export function MyTasksPage() {
           <h2 className="mb-3 text-sm font-medium text-ink-300">Active</h2>
           <div className="flex flex-col gap-3">
             {active.map((t) => (
-              <div key={t.id} className="rounded-lg border border-base-700 bg-base-900 p-5">
+              <div key={t.id} className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
                 <p className="font-medium text-ink-100">{t.donation?.title}</p>
                 <p className="mt-1 text-sm text-ink-500">{t.donation?.pickupAddress}</p>
                 <div className="mt-3">
@@ -51,7 +51,7 @@ export function MyTasksPage() {
           <h2 className="mb-3 text-sm font-medium text-ink-300">History</h2>
           <div className="flex flex-col gap-3">
             {past.map((t) => (
-              <div key={t.id} className="rounded-lg border border-base-700 bg-base-900 p-5">
+              <div key={t.id} className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
                 <p className="font-medium text-ink-100">{t.donation?.title}</p>
                 <p className="mt-1 text-xs text-ink-500">{t.status}</p>
               </div>

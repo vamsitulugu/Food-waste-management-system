@@ -33,14 +33,14 @@ export function AdminOrganizationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl text-ink-100">Organizations</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Organizations</h1>
 
       <div className="flex gap-2">
         {(['pending', 'verified', 'rejected', 'suspended', undefined] as const).map((s) => (
           <button
             key={s ?? 'all'}
             onClick={() => setFilter(s)}
-            className={`rounded-md px-3 py-1.5 text-sm ${
+            className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ${
               filter === s ? 'bg-brand-700/20 text-brand-300' : 'text-ink-500 hover:text-ink-100'
             }`}
           >
@@ -57,7 +57,7 @@ export function AdminOrganizationsPage() {
       {orgs && orgs.length > 0 && (
         <div className="flex flex-col gap-3">
           {orgs.map((org) => (
-            <div key={org.id} className="rounded-lg border border-base-700 bg-base-900 p-5">
+            <div key={org.id} className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-medium text-ink-100">{org.name}</p>

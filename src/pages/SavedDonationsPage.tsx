@@ -28,7 +28,7 @@ export function SavedDonationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl text-ink-100">Saved donations</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Saved donations</h1>
 
       {loading && <DonationGridSkeleton count={4} />}
       {error && <ErrorState message={error} onRetry={refetch} />}

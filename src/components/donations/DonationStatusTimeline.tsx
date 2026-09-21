@@ -27,7 +27,7 @@ export function DonationStatusTimeline({
   if (TERMINAL.includes(status)) {
     const label = status === 'cancelled' ? 'Cancelled' : status === 'expired' ? 'Expired' : 'Removed';
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-base-700 bg-base-900 px-4 py-3">
+      <div className="flex items-center gap-2 rounded-2xl border border-base-700 bg-base-900 shadow-card px-4 py-3">
         <span className="h-2 w-2 rounded-full bg-danger-400" />
         <span className="text-sm text-ink-300">{label}</span>
       </div>

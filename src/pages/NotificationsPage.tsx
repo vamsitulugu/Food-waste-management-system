@@ -52,7 +52,7 @@ export function NotificationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl text-ink-100">Notifications</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Notifications</h1>
         {notifications && notifications.some((n) => !n.isRead) && (
           <Button variant="secondary" onClick={handleMarkAllRead}>
             Mark all as read
@@ -78,7 +78,7 @@ export function NotificationsPage() {
           {notifications.map((n) => (
             <div
               key={n.id}
-              className={`flex items-start justify-between gap-3 rounded-md border p-4
+              className={`flex items-start justify-between gap-3 rounded-xl border p-4
                 ${n.isRead ? 'border-base-700 bg-base-900' : 'border-brand-500/30 bg-brand-700/10'}`}
             >
               <div>

@@ -139,11 +139,11 @@ export function ProfilePage() {
   return (
     <div className="flex max-w-lg flex-col gap-8">
       <div>
-        <h1 className="font-display text-2xl text-ink-100">Your profile</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Your profile</h1>
         <p className="mt-1 text-sm text-ink-500">{roleLabel(profile.role)}</p>
       </div>
 
-      <div className="flex items-center gap-4 rounded-lg border border-base-700 bg-base-900 p-6">
+      <div className="flex items-center gap-4 rounded-2xl border border-base-700 bg-base-900 shadow-card p-6">
         <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-base-800 text-lg text-ink-500">
           {avatarPreviewUrl ? (
             <img src={avatarPreviewUrl} alt="" className="h-full w-full object-cover" />
@@ -152,7 +152,7 @@ export function ProfilePage() {
           )}
         </div>
         <div>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-base-700 px-3 py-2 text-sm text-ink-300 hover:border-base-600">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-base-700 px-3 py-2 text-sm text-ink-300 hover:border-base-600">
             {uploadingAvatar ? 'Uploading…' : 'Change photo'}
             <input
               type="file"
@@ -166,7 +166,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-base-700 bg-base-900 p-6">
+      <div className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-6">
         <h2 className="text-sm font-medium text-ink-100">Profile ID</h2>
         <p className="mt-1 text-sm text-ink-500">
           Share this with an organization owner to be added as a member. It's not sensitive on
@@ -177,7 +177,7 @@ export function ProfilePage() {
         </code>
       </div>
 
-      <form onSubmit={handleSaveProfile} className="flex flex-col gap-4 rounded-lg border border-base-700 bg-base-900 p-6">
+      <form onSubmit={handleSaveProfile} className="flex flex-col gap-4 rounded-2xl border border-base-700 bg-base-900 shadow-card p-6">
         <h2 className="text-sm font-medium text-ink-100">Basic details</h2>
         <Input
           label="Full name"
@@ -193,7 +193,7 @@ export function ProfilePage() {
         </div>
       </form>
 
-      <form onSubmit={handleSavePhone} className="flex flex-col gap-4 rounded-lg border border-base-700 bg-base-900 p-6">
+      <form onSubmit={handleSavePhone} className="flex flex-col gap-4 rounded-2xl border border-base-700 bg-base-900 shadow-card p-6">
         <div>
           <h2 className="text-sm font-medium text-ink-100">Phone number</h2>
           <p className="mt-1 text-sm text-ink-500">
@@ -234,7 +234,7 @@ export function ProfilePage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border border-danger-500/30 bg-base-900 p-6">
+      <div className="rounded-2xl border border-danger-500/30 bg-base-900 p-6">
         <h2 className="text-sm font-medium text-ink-100">Deactivate account</h2>
         <p className="mt-1 text-sm text-ink-500">
           Your name and phone number will be removed and you'll be signed out. Your donation and

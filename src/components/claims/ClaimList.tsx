@@ -52,7 +52,7 @@ export function ClaimList({
   return (
     <div className="flex flex-col gap-2">
       {claims.map((c) => (
-        <div key={c.id} className="rounded-md border border-base-700 bg-base-900 p-4">
+        <div key={c.id} className="rounded-xl border border-base-700 bg-base-900 p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm text-ink-100">{c.claimant?.fullName ?? 'A recipient'}</p>

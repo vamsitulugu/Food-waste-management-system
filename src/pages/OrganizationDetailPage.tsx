@@ -97,7 +97,7 @@ export function OrganizationDetailPage() {
     <div className="flex flex-col gap-8">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="font-display text-2xl text-ink-100">{org.name}</h1>
+          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">{org.name}</h1>
           <span className={`text-sm ${VERIFICATION_BADGE[org.verificationStatus]}`}>
             {ORG_VERIFICATION_LABELS[org.verificationStatus]}
           </span>
@@ -122,7 +122,7 @@ export function OrganizationDetailPage() {
             {members.map((m) => (
               <div
                 key={m.profileId}
-                className="flex items-center justify-between rounded-md border border-base-700 bg-base-900 px-4 py-3"
+                className="flex items-center justify-between rounded-xl border border-base-700 bg-base-900 px-4 py-3"
               >
                 <div>
                   <p className="text-sm text-ink-100">{m.profile?.fullName ?? 'Unknown user'}</p>
@@ -133,7 +133,7 @@ export function OrganizationDetailPage() {
                     <select
                       value={m.orgRole}
                       onChange={(e) => handleRoleChange(m.profileId, e.target.value as OrgMemberRole)}
-                      className="rounded-md border border-base-700 bg-base-850 px-2 py-1.5 text-xs text-ink-100"
+                      className="rounded-xl border border-base-700 bg-base-850 px-2 py-1.5 text-xs text-ink-100"
                     >
                       <option value="member">Member</option>
                       <option value="admin">Admin</option>
@@ -157,7 +157,7 @@ export function OrganizationDetailPage() {
       {canManageMembers && (
         <form
           onSubmit={handleInvite}
-          className="flex flex-col gap-4 rounded-lg border border-base-700 bg-base-900 p-6"
+          className="flex flex-col gap-4 rounded-2xl border border-base-700 bg-base-900 shadow-card p-6"
         >
           <div>
             <h2 className="text-sm font-medium text-ink-100">Add a member</h2>
@@ -181,7 +181,7 @@ export function OrganizationDetailPage() {
               id="invite-role"
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as OrgMemberRole)}
-              className="rounded-md border border-base-700 bg-base-850 px-3 py-2.5 text-sm text-ink-100"
+              className="rounded-xl border border-base-700 bg-base-850 px-3 py-2.5 text-sm text-ink-100"
             >
               <option value="member">Member</option>
               <option value="admin">Admin</option>

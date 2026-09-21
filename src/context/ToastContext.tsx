@@ -16,9 +16,9 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 const KIND_STYLES: Record<ToastKind, string> = {
-  success: 'border-brand-500/40 bg-brand-700/20 text-brand-300',
-  error: 'border-danger-500/40 bg-danger-500/10 text-danger-400',
-  info: 'border-base-700 bg-base-850 text-ink-300',
+  success: 'border-success-500/30 bg-white text-success-400',
+  error: 'border-danger-500/30 bg-white text-danger-400',
+  info: 'border-base-700 bg-white text-ink-300',
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -43,7 +43,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`rounded-md border px-4 py-3 text-sm shadow-lg backdrop-blur-sm ${KIND_STYLES[t.kind]}`}
+            className={`rounded-xl border px-4 py-3 text-sm font-medium shadow-card-hover ${KIND_STYLES[t.kind]}`}
           >
             {t.message}
           </div>

@@ -110,7 +110,7 @@ export function DonationImageUploader({ donationId }: { donationId: string }) {
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           {images.map((img) => (
-            <div key={img.id} className="group relative overflow-hidden rounded-md border border-base-700">
+            <div key={img.id} className="group relative overflow-hidden rounded-xl border border-base-700">
               {previews[img.id] ? (
                 <img src={previews[img.id]} alt="Donation" className="h-28 w-full object-cover" />
               ) : (
@@ -147,7 +147,7 @@ export function DonationImageUploader({ donationId }: { donationId: string }) {
       )}
 
       {images.length < MAX_IMAGES_PER_DONATION && (
-        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-md border border-dashed border-base-700 px-4 py-2.5 text-sm text-ink-300 hover:border-base-600">
+        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-dashed border-base-700 px-4 py-2.5 text-sm text-ink-300 hover:border-base-600">
           {uploading ? 'Uploading…' : 'Add photo (JPEG/PNG/WebP, up to 5MB)'}
           <input
             type="file"

@@ -66,8 +66,8 @@ export function BrowsePage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl text-ink-100">Find food near you</h1>
-          <p className="mt-1 text-sm text-ink-500">Surplus food currently available for pickup.</p>
+          <h1 className="font-display text-3xl text-ink-100">Find food near you</h1>
+          <p className="mt-1 text-sm font-medium text-ink-500">Surplus food currently available for pickup.</p>
         </div>
         <Button
           variant={nearbyMode ? 'primary' : 'secondary'}
@@ -94,10 +94,15 @@ export function BrowsePage() {
       )}
 
       {!loading && !error && visible && visible.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((d) => (
-            <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
-          ))}
+        <div>
+          <h2 className="mb-4 font-display text-xl text-ink-100">
+            {visible.length} {visible.length === 1 ? 'donation' : 'donations'} available
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((d) => (
+              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
+            ))}
+          </div>
         </div>
       )}
     </div>

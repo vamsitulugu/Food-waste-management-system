@@ -83,17 +83,17 @@ export function EditDonationPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl text-ink-100">Edit donation</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Edit donation</h1>
         <DonationStatusBadge status={donation.status} />
       </div>
 
-      <div className="mt-6 rounded-lg border border-base-700 bg-base-900 p-6">
+      <div className="mt-6 rounded-2xl border border-base-700 bg-base-900 shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-ink-100">Photos</h2>
         <DonationImageUploader donationId={donation.id} />
       </div>
 
       {donation.status === 'draft' && (
-        <div className="mt-6 rounded-lg border border-brand-500/30 bg-brand-700/10 p-6">
+        <div className="mt-6 rounded-2xl border border-brand-500/30 bg-brand-700/10 p-6">
           <p className="text-sm text-ink-100">This donation is still a draft and not visible to anyone yet.</p>
           <Button className="mt-3" loading={publishing} onClick={handlePublish}>
             Publish donation
@@ -117,7 +117,7 @@ export function EditDonationPage() {
       </div>
 
       {isCancellable && (
-        <div className="mt-6 rounded-lg border border-danger-500/30 bg-base-900 p-6">
+        <div className="mt-6 rounded-2xl border border-danger-500/30 bg-base-900 p-6">
           <h2 className="text-sm font-medium text-ink-100">Cancel this donation</h2>
           {!confirmingCancel ? (
             <Button variant="danger" className="mt-3" onClick={() => setConfirmingCancel(true)}>

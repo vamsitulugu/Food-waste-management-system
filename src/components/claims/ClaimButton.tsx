@@ -40,7 +40,7 @@ export function ClaimButton({ donationId, onClaimed }: { donationId: string; onC
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-base-700 bg-base-900 p-5">
+    <div className="flex flex-col gap-4 rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
       <div className="flex flex-col gap-2" role="radiogroup" aria-label="Fulfillment method">
         {METHODS.map((m) => (
           <button
@@ -49,7 +49,7 @@ export function ClaimButton({ donationId, onClaimed }: { donationId: string; onC
             role="radio"
             aria-checked={method === m}
             onClick={() => setMethod(m)}
-            className={`rounded-md border px-4 py-3 text-left text-sm transition-colors
+            className={`rounded-xl border px-4 py-3 text-left text-sm transition-colors
               ${method === m ? 'border-brand-400 bg-brand-700/15 text-ink-100' : 'border-base-700 text-ink-300 hover:border-base-600'}`}
           >
             {FULFILLMENT_METHOD_LABELS[m]}
@@ -66,7 +66,7 @@ export function ClaimButton({ donationId, onClaimed }: { donationId: string; onC
             id="claim-org"
             value={organizationId}
             onChange={(e) => setOrganizationId(e.target.value)}
-            className="rounded-md border border-base-700 bg-base-850 px-3 py-2.5 text-sm text-ink-100"
+            className="rounded-xl border border-base-700 bg-base-850 px-3 py-2.5 text-sm text-ink-100"
           >
             <option value="">Myself</option>
             {myOrgs.map((org) => (

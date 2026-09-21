@@ -9,7 +9,7 @@ export function AdminAuditLogPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl text-ink-100">Audit log</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Audit log</h1>
         <p className="mt-1 text-sm text-ink-500">
           Append-only record of sensitive actions — organization verification, donation
           removals, report resolutions, account deactivation, and admin promotions.
@@ -22,7 +22,7 @@ export function AdminAuditLogPage() {
       {!loading && !error && logs && logs.length === 0 && <EmptyState title="No recorded actions yet" />}
 
       {logs && logs.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-base-700">
+        <div className="overflow-x-auto rounded-2xl border border-base-700">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-base-700 bg-base-900 text-ink-500">
               <tr>

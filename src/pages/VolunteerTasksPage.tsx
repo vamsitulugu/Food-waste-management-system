@@ -32,7 +32,7 @@ export function VolunteerTasksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl text-ink-100">Open delivery tasks</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Open delivery tasks</h1>
         <p className="mt-1 text-sm text-ink-500">Help bridge the gap between a donor and a recipient.</p>
       </div>
 
@@ -46,7 +46,7 @@ export function VolunteerTasksPage() {
       {tasks && tasks.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2">
           {tasks.map((t) => (
-            <div key={t.id} className="rounded-lg border border-base-700 bg-base-900 p-5">
+            <div key={t.id} className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
               <p className="font-medium text-ink-100">{t.donation.title}</p>
               <p className="mt-1 text-sm text-ink-500">{t.donation.pickupAddress}</p>
               <Button className="mt-3" loading={accepting === t.id} onClick={() => handleAccept(t.id)}>

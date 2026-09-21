@@ -18,10 +18,10 @@ export function RoleSelector({ value, onChange }: RoleSelectorProps) {
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(role)}
-            className={`rounded-md border px-4 py-3 text-left transition-colors
-              ${selected ? 'border-brand-400 bg-brand-700/15' : 'border-base-700 bg-base-900 hover:border-base-600'}`}
+            className={`rounded-2xl border-2 px-4 py-3.5 text-left transition-colors
+              ${selected ? 'border-brand-500 bg-brand-700/10' : 'border-base-700 bg-base-900 hover:border-brand-500/40'}`}
           >
-            <p className="text-sm font-medium text-ink-100">{ROLE_LABELS[role]}</p>
+            <p className="text-sm font-bold text-ink-100">{ROLE_LABELS[role]}</p>
             <p className="mt-0.5 text-sm text-ink-500">{ROLE_DESCRIPTIONS[role]}</p>
           </button>
         );

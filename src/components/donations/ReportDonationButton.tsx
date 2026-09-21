@@ -44,7 +44,7 @@ export function ReportDonationButton({ donationId }: { donationId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-base-700 bg-base-900 p-4">
+    <div className="flex flex-col gap-3 rounded-xl border border-base-700 bg-base-900 p-4">
       <Input label="What's wrong with this donation?" value={reason} onChange={(e) => setReason(e.target.value)} required />
       <div className="flex gap-2">
         <Button variant="danger" loading={submitting} onClick={handleSubmit}>

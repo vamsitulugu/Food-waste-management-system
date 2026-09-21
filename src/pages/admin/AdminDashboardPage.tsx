@@ -10,7 +10,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="font-display text-2xl text-ink-100">Admin dashboard</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Admin dashboard</h1>
 
       {loading && <LoadingSpinner label="Loading stats" />}
       {error && <ErrorState message={error} onRetry={refetch} />}

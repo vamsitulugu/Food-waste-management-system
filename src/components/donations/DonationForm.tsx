@@ -209,7 +209,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
             rows={3}
             value={values.description}
             onChange={(e) => set('description', e.target.value)}
-            className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none focus:border-brand-400"
+            className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none focus:border-brand-400"
           />
         </div>
 
@@ -221,7 +221,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
             id="category"
             value={values.category}
             onChange={(e) => set('category', e.target.value as FoodCategory)}
-            className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
+            className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -250,7 +250,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
               id="unit"
               value={values.quantityUnit}
               onChange={(e) => set('quantityUnit', e.target.value as QuantityUnit)}
-              className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
+              className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
             >
               {UNITS.map((u) => (
                 <option key={u} value={u}>
@@ -262,7 +262,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
         </div>
       </div>
 
-      <fieldset className="rounded-lg border border-base-700 p-4">
+      <fieldset className="rounded-2xl border border-base-700 p-4">
         <legend className="px-1 text-sm font-medium text-ink-100">Food safety information</legend>
         <p className="mb-3 text-xs text-ink-500">
           You are responsible for the accuracy of this information. Recipients and volunteers
@@ -278,7 +278,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
               id="vegetarian"
               value={values.isVegetarian}
               onChange={(e) => set('isVegetarian', e.target.value as DonationFormValues['isVegetarian'])}
-              className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
+              className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
             >
               <option value="unspecified">Not specified</option>
               <option value="yes">Vegetarian</option>
@@ -293,7 +293,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
               id="storage"
               value={values.storageRequirement}
               onChange={(e) => set('storageRequirement', e.target.value as StorageRequirement | '')}
-              className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
+              className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100"
             >
               <option value="">Not specified</option>
               {STORAGE_OPTIONS.map((s) => (
@@ -332,7 +332,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
         </div>
       </fieldset>
 
-      <fieldset className="rounded-lg border border-base-700 p-4">
+      <fieldset className="rounded-2xl border border-base-700 p-4">
         <legend className="px-1 text-sm font-medium text-ink-100">Pickup</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input

@@ -20,7 +20,7 @@ export function OrganizationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl text-ink-100">Your organizations</h1>
+          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Your organizations</h1>
           <p className="mt-1 text-sm text-ink-500">
             Manage NGOs, food banks, or businesses you're part of.
           </p>
@@ -57,7 +57,7 @@ export function OrganizationsPage() {
             <Link
               key={org.id}
               to={`/organizations/${org.id}`}
-              className="rounded-lg border border-base-700 bg-base-900 p-5 transition-colors hover:border-base-600"
+              className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5 transition-colors hover:border-base-600"
             >
               <div className="flex items-center justify-between">
                 <div>

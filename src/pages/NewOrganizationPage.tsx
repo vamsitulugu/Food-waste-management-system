@@ -53,7 +53,7 @@ export function NewOrganizationPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="font-display text-2xl text-ink-100">New organization</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">New organization</h1>
       <p className="mt-1 text-sm text-ink-500">
         You'll become its owner and can invite other members afterwards.
       </p>
@@ -69,7 +69,7 @@ export function NewOrganizationPage() {
             id="org-type"
             value={orgType}
             onChange={(e) => setOrgType(e.target.value as OrgType)}
-            className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none focus:border-brand-400"
+            className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none focus:border-brand-400"
           >
             {ORG_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -94,7 +94,7 @@ export function NewOrganizationPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="rounded-md border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none focus:border-brand-400"
+            className="rounded-xl border border-base-700 bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none focus:border-brand-400"
           />
         </div>
 

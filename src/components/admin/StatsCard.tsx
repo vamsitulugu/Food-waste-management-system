@@ -1,8 +1,8 @@
 export function StatsCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-base-700 bg-base-900 p-5">
-      <p className="text-2xl font-display text-ink-100">{value}</p>
-      <p className="mt-1 text-sm text-ink-500">{label}</p>
+    <div className="rounded-2xl bg-base-900 p-5 shadow-card">
+      <p className="font-display text-3xl text-brand-500">{value}</p>
+      <p className="mt-1 text-sm font-medium text-ink-500">{label}</p>
     </div>
   );
 }

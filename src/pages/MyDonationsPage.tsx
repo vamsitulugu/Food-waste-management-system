@@ -34,7 +34,7 @@ export function MyDonationsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl text-ink-100">My donations</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My donations</h1>
         <Link to="/donations/new">
           <Button className="inline-flex items-center gap-1.5">
             <Plus size={16} /> New donation

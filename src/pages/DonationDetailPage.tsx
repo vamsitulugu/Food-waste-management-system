@@ -123,7 +123,7 @@ export function DonationDetailPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-start justify-between gap-3">
-        <h1 className="font-display text-2xl text-ink-100">{donation.title}</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">{donation.title}</h1>
         <DonationStatusBadge status={donation.status} />
       </div>
 
@@ -134,7 +134,7 @@ export function DonationDetailPage() {
       )}
 
       {donation.status !== 'draft' && (
-        <div className="mt-5 rounded-lg border border-base-700 bg-base-900 px-4 py-5">
+        <div className="mt-5 rounded-2xl border border-base-700 bg-base-900 shadow-card px-4 py-5">
           <DonationStatusTimeline
             status={donation.status}
             fulfillmentMethod={acceptedClaim?.fulfillmentMethod ?? myClaim?.fulfillmentMethod}
@@ -181,7 +181,7 @@ export function DonationDetailPage() {
         <dd className="text-ink-100">{donation.pickupAddress}</dd>
       </dl>
 
-      <p className="mt-4 rounded-md border border-base-700 bg-base-900 px-4 py-3 text-xs text-ink-500">
+      <p className="mt-4 rounded-xl border border-base-700 bg-base-900 px-4 py-3 text-xs text-ink-500">
         Food safety information is provided by the donor and has not been independently verified.
         Recipients and volunteers should use their own judgment.
       </p>
@@ -193,7 +193,7 @@ export function DonationDetailPage() {
       )}
 
       {!isDonor && myClaim && (
-        <div className="mt-6 rounded-lg border border-base-700 bg-base-900 p-5">
+        <div className="mt-6 rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
           <div className="flex items-center justify-between">
             <p className="text-sm text-ink-100">Your request</p>
             <ClaimStatusBadge status={myClaim.status} />
@@ -235,7 +235,7 @@ export function DonationDetailPage() {
       )}
 
       {isDonor && acceptedClaim && donation.status !== 'available' && (
-        <div className="mt-6 rounded-lg border border-base-700 bg-base-900 p-5">
+        <div className="mt-6 rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
           <p className="text-sm text-ink-100">Accepted: {acceptedClaim.claimant?.fullName ?? 'Recipient'}</p>
           <p className="mt-1 text-xs text-ink-500">{FULFILLMENT_METHOD_LABELS[acceptedClaim.fulfillmentMethod]}</p>
 
@@ -248,7 +248,7 @@ export function DonationDetailPage() {
       )}
 
       {task && (
-        <div className="mt-6 rounded-lg border border-base-700 bg-base-900 p-5">
+        <div className="mt-6 rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
           <h2 className="text-sm font-medium text-ink-100">Delivery task</h2>
           <p className="mt-1 text-sm text-ink-300">{PICKUP_TASK_STATUS_LABELS[task.status]}</p>
         </div>

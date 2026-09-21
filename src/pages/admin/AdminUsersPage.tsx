@@ -42,7 +42,7 @@ export function AdminUsersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl text-ink-100">Users</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Users</h1>
 
       {loading && <LoadingSpinner label="Loading users" />}
       {error && <ErrorState message={error} onRetry={refetch} />}
@@ -50,7 +50,7 @@ export function AdminUsersPage() {
       {users && (
         <div className="flex flex-col gap-2">
           {users.map((u) => (
-            <div key={u.id} className="flex items-center justify-between rounded-md border border-base-700 bg-base-900 px-4 py-3">
+            <div key={u.id} className="flex items-center justify-between rounded-xl border border-base-700 bg-base-900 px-4 py-3">
               <div>
                 <p className="text-sm text-ink-100">{u.fullName}</p>
                 <p className="text-xs text-ink-500">

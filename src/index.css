@@ -1,45 +1,56 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 
 @theme {
-  /* Base surfaces — near-black with a faint green cast, not neutral grey */
-  --color-base-950: #0c100e;
-  --color-base-900: #111613;
-  --color-base-850: #161c19;
-  --color-base-800: #1c2320;
-  --color-base-700: #262e29;
-  --color-base-600: #384039;
+  /* ---- Swiggy / Zomato-inspired light theme ----
+     Token NAMES are unchanged from the old dark theme so every existing
+     page picks up the new look automatically. */
+
+  /* Surfaces: page bg (950) -> white cards (900) -> soft greys (850/800) -> borders (700/600) */
+  --color-base-950: #f6f6f8;
+  --color-base-900: #ffffff;
+  --color-base-850: #f3f3f6;
+  --color-base-800: #ececf0;
+  --color-base-700: #e6e6eb;
+  --color-base-600: #d0d0d8;
 
   /* Text */
-  --color-ink-100: #edefec;
-  --color-ink-300: #c3cac2;
-  --color-ink-500: #93a196;
-  --color-ink-700: #64726a;
+  --color-ink-100: #1c1c1e;
+  --color-ink-300: #3d4152;
+  --color-ink-500: #686b78;
+  --color-ink-700: #93959f;
 
-  /* Brand — muted forest green (rescue / sustainability) */
-  --color-brand-300: #8fbb9b;
-  --color-brand-400: #6fa97d;
-  --color-brand-500: #4f7a5b;
-  --color-brand-600: #3d6148;
-  --color-brand-700: #2e4a37;
+  /* Brand — Swiggy orange, shading toward Zomato red.
+     500 = solid fills, 400/300 = text + hover (darker for contrast),
+     700 = base colour used for soft /10-/20 tints. */
+  --color-brand-300: #c2410c;
+  --color-brand-400: #e2560f;
+  --color-brand-500: #f26b1d;
+  --color-brand-600: #e23744;
+  --color-brand-700: #fc8019;
 
-  /* Warm accent — amber-clay (food warmth), used sparingly */
-  --color-warm-400: #d99a5c;
-  --color-warm-500: #c97a3d;
-  --color-warm-600: #a5602c;
+  /* Warm accent (amber) */
+  --color-warm-400: #b45309;
+  --color-warm-500: #f59e0b;
+  --color-warm-600: #d97706;
 
   /* Status */
-  --color-danger-400: #d97b70;
-  --color-danger-500: #c1554a;
-  --color-warning-400: #d1a23d;
-  --color-success-400: #6fa97d;
+  --color-danger-300: #b91c2c;
+  --color-danger-400: #d1293a;
+  --color-danger-500: #e23744;
+  --color-warning-400: #b7791f;
+  --color-success-400: #1f8f4a;
+  --color-success-500: #2ea55a;
 
-  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 2px 12px rgba(28, 28, 30, 0.06);
+  --shadow-card-hover: 0 10px 28px rgba(28, 28, 30, 0.13);
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -47,6 +58,12 @@ body {
   color: var(--color-ink-100);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Headings across the app use font-display: make them bold + tight like Swiggy/Zomato */
+.font-display {
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 * {
@@ -66,9 +83,9 @@ body {
 .skeleton {
   background-image: linear-gradient(
     90deg,
-    var(--color-base-850) 0px,
-    var(--color-base-800) 40px,
-    var(--color-base-850) 80px
+    var(--color-base-800) 0px,
+    var(--color-base-700) 40px,
+    var(--color-base-800) 80px
   );
   background-size: 400px 100%;
   animation: shimmer 1.4s ease-in-out infinite;

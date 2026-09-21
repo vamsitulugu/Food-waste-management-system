@@ -6,8 +6,8 @@ export function Skeleton({ className = '' }: { className?: string }) {
  * spinner on grid pages so the layout doesn't jump once real cards arrive. */
 export function DonationCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-base-700 bg-base-900">
-      <Skeleton className="h-36 w-full rounded-none" />
+    <div className="overflow-hidden rounded-2xl bg-base-900 shadow-card">
+      <Skeleton className="h-44 w-full rounded-none" />
       <div className="flex flex-col gap-2 p-4">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-1/2" />
@@ -19,7 +19,7 @@ export function DonationCardSkeleton() {
 
 export function DonationGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
         <DonationCardSkeleton key={i} />
       ))}
@@ -29,7 +29,7 @@ export function DonationGridSkeleton({ count = 6 }: { count?: number }) {
 
 export function ListRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-base-700 bg-base-900 p-4">
+    <div className="flex items-center gap-3 rounded-2xl bg-base-900 p-4 shadow-card">
       <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
       <div className="flex flex-1 flex-col gap-2">
         <Skeleton className="h-3.5 w-1/3" />

@@ -29,20 +29,25 @@ export function BottomNav() {
   tabs.push({ to: '/profile', label: 'Profile', icon: User });
 
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-base-700 bg-base-900/95 backdrop-blur-sm md:hidden">
+    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-base-700 bg-base-900 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] md:hidden">
       <div className="mx-auto flex max-w-6xl">
         {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] ${
-                isActive ? 'text-brand-400' : 'text-ink-500'
+              `relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
+                isActive ? 'text-brand-500' : 'text-ink-500'
               }`
             }
           >
-            <Icon size={20} strokeWidth={2} />
-            {label}
+            {({ isActive }) => (
+              <>
+                {isActive && <span className="absolute inset-x-6 top-0 h-0.5 rounded-b-full bg-brand-500" />}
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
       </div>

@@ -28,7 +28,7 @@ export function NewDonationPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-2xl text-ink-100">New donation</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">New donation</h1>
       <p className="mt-1 text-sm text-ink-500">
         This saves as a draft first — you'll add photos and publish it on the next screen.
       </p>

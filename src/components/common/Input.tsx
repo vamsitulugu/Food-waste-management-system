@@ -12,14 +12,14 @@ export function Input({ label, error, id, className = '', ...rest }: InputProps)
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={inputId} className="text-sm text-ink-300">
+      <label htmlFor={inputId} className="text-sm font-medium text-ink-300">
         {label}
       </label>
       <input
         id={inputId}
-        className={`rounded-md border bg-base-900 px-3 py-2.5 text-sm text-ink-100 outline-none
-          placeholder:text-ink-700 focus:border-brand-400
-          ${error ? 'border-danger-500' : 'border-base-700'} ${className}`}
+        className={`rounded-xl border bg-base-900 px-3.5 py-3 text-sm text-ink-100 outline-none transition-shadow
+          placeholder:text-ink-700 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10
+          ${error ? 'border-danger-500' : 'border-base-600'} ${className}`}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : undefined}
         {...rest}

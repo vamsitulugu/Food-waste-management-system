@@ -20,7 +20,7 @@ export function MyClaimsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl text-ink-100">My requests</h1>
+        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My requests</h1>
         <p className="mt-1 text-sm text-ink-500">Donations you've claimed or requested.</p>
       </div>
 
@@ -51,7 +51,7 @@ export function MyClaimsPage() {
             <Link
               key={c.id}
               to={`/donations/${c.donationId}`}
-              className="flex items-center justify-between rounded-md border border-base-700 bg-base-900 p-4 hover:border-base-600"
+              className="flex items-center justify-between rounded-xl border border-base-700 bg-base-900 p-4 hover:border-base-600"
             >
               <div>
                 <p className="text-sm text-ink-100">{c.donation?.title ?? 'Donation'}</p>

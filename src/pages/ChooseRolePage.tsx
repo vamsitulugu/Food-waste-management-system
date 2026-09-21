@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { RoleSelector } from '../components/auth/RoleSelector';
+import { Logo } from '../components/common/Logo';
 import { Button } from '../components/common/Button';
 import { setInitialRole } from '../api/profile';
 import type { UserRole } from '../types/database';
@@ -43,11 +44,11 @@ export function ChooseRolePage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-base-950 px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <p className="font-display text-xl text-ink-100">Second Serving</p>
+        <div className="mb-8 flex justify-center">
+          <Logo size="lg" />
         </div>
-        <div className="rounded-lg border border-base-700 bg-base-900 p-8">
-          <h1 className="font-display text-2xl text-ink-100">How will you use the platform?</h1>
+        <div className="rounded-3xl bg-base-900 p-8 shadow-card-hover">
+          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">How will you use the platform?</h1>
           <p className="mt-1 text-sm text-ink-500">
             Pick one to get started — this sets up your dashboard.
           </p>

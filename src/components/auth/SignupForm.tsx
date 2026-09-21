@@ -62,7 +62,7 @@ export function SignupForm() {
 
   if (awaitingConfirmation) {
     return (
-      <div className="rounded-md border border-base-700 bg-base-900 p-6 text-center">
+      <div className="rounded-xl border border-base-700 bg-base-900 p-6 text-center">
         <p className="text-ink-100">Check your email to confirm your account.</p>
         <p className="mt-2 text-sm text-ink-500">
           We sent a confirmation link to {email}. Once confirmed, sign in and you'll be asked

@@ -52,9 +52,16 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl text-ink-100">Welcome, {profile.fullName.split(' ')[0]}</h1>
-        <p className="mt-1 text-sm text-ink-500">Signed in as {roleLabel(profile.role)}.</p>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 to-brand-600 px-6 py-8 text-white shadow-card-hover sm:px-10 sm:py-10">
+        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" />
+        <div className="absolute -bottom-16 right-24 h-40 w-40 rounded-full bg-white/10" />
+        <p className="relative text-sm font-semibold uppercase tracking-wide text-white/80">
+          {roleLabel(profile.role)}
+        </p>
+        <h1 className="font-display relative mt-1 text-3xl sm:text-4xl">Hey {profile.fullName.split(' ')[0]}, hungry to help?</h1>
+        <p className="relative mt-2 max-w-md text-sm text-white/90">
+          Every meal rescued is a meal not wasted. Pick up where you left off below.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -62,16 +69,16 @@ export function DashboardPage() {
           <Link
             key={to}
             to={to}
-            className="group flex items-start gap-4 rounded-2xl border border-base-700 bg-base-900 p-5 transition-colors hover:border-base-600"
+            className="group flex items-start gap-4 rounded-2xl bg-base-900 p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-700/15 text-brand-400">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-700/15 text-brand-500">
               <Icon size={20} strokeWidth={1.75} />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-ink-100">{label}</p>
+              <p className="font-display text-base text-ink-100">{label}</p>
               <p className="mt-0.5 text-sm text-ink-500">{description}</p>
             </div>
-            <ArrowRight size={16} className="mt-1 shrink-0 text-ink-700 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight size={16} className="mt-1 shrink-0 text-brand-500 transition-transform group-hover:translate-x-1" />
           </Link>
         ))}
       </div>

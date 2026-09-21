@@ -51,7 +51,7 @@ export function SaveDonationButton({ donationId }: { donationId: string }) {
     <button
       onClick={handleToggle}
       disabled={toggling}
-      className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm transition-colors
+      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition-colors
         ${saved ? 'border-warm-500/40 bg-warm-600/10 text-warm-400' : 'border-base-700 text-ink-300 hover:border-base-600'}`}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">

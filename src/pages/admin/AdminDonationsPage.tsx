@@ -47,7 +47,7 @@ export function AdminDonationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl text-ink-100">All donations</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">All donations</h1>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1.5">
@@ -58,7 +58,7 @@ export function AdminDonationsPage() {
             id="admin-donation-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="rounded-md border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
+            className="rounded-xl border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -69,7 +69,7 @@ export function AdminDonationsPage() {
             id="admin-donation-status"
             value={status}
             onChange={(e) => setStatus(e.target.value as DonationStatus | '')}
-            className="rounded-md border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
+            className="rounded-xl border border-base-700 bg-base-900 px-3 py-2 text-sm text-ink-100"
           >
             <option value="">Any</option>
             {STATUSES.map((s) => (
@@ -89,7 +89,7 @@ export function AdminDonationsPage() {
       {donations && donations.length > 0 && (
         <div className="flex flex-col gap-2">
           {donations.map((d) => (
-            <div key={d.id} className="rounded-md border border-base-700 bg-base-900 p-4">
+            <div key={d.id} className="rounded-xl border border-base-700 bg-base-900 p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Link to={`/donations/${d.id}`} className="text-sm text-ink-100 hover:text-brand-300">

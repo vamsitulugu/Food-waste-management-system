@@ -52,7 +52,7 @@ export function AdminReportsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl text-ink-100">Open reports</h1>
+      <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Open reports</h1>
 
       {loading && <LoadingSpinner label="Loading reports" />}
       {error && <ErrorState message={error} onRetry={refetch} />}
@@ -62,7 +62,7 @@ export function AdminReportsPage() {
       {reports && reports.length > 0 && (
         <div className="flex flex-col gap-3">
           {reports.map((r) => (
-            <div key={r.id} className="rounded-lg border border-base-700 bg-base-900 p-5">
+            <div key={r.id} className="rounded-2xl border border-base-700 bg-base-900 shadow-card p-5">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-ink-100">{r.reason}</p>
