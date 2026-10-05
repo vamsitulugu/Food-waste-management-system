@@ -5,6 +5,7 @@ import { fetchMyTasks } from '../api/tasks';
 import { TaskStatusStepper } from '../components/volunteer/TaskStatusStepper';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState, ErrorState } from '../components/common/States';
+import { DeliveriesTabs } from '../components/volunteer/DeliveriesTabs';
 
 export function MyTasksPage() {
   const { session } = useAuth();
@@ -20,13 +21,14 @@ export function MyTasksPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <DeliveriesTabs />
       <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My delivery tasks</h1>
 
       {loading && <LoadingSpinner label="Loading tasks" />}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && tasks && tasks.length === 0 && (
-        <EmptyState title="No tasks yet" description="Accept an open task to get started." />
+        <EmptyState title="No tasks yet" description="Accept an open delivery from the Available tab to get started." />
       )}
 
       {active.length > 0 && (

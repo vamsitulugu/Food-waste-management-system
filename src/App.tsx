@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { RequireAuth } from './routes/RequireAuth';
+import { PublicOnly } from './routes/PublicOnly';
 import { AppShell } from './components/common/AppShell';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -34,9 +35,9 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/" element={<PublicOnly><LandingPage /></PublicOnly>} />
+            <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
+            <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
             <Route
               element={
                 <RequireAuth>

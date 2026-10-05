@@ -4,9 +4,9 @@ import { HeartHandshake } from 'lucide-react';
 export function Logo({ size = 'md', light = false }: { size?: 'sm' | 'md' | 'lg'; light?: boolean }) {
   const tile = size === 'lg' ? 'h-11 w-11 rounded-2xl' : size === 'sm' ? 'h-7 w-7 rounded-lg' : 'h-9 w-9 rounded-xl';
   const icon = size === 'lg' ? 22 : size === 'sm' ? 15 : 19;
-  const text = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-base' : 'text-xl';
+  const text = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-base' : 'text-lg sm:text-xl';
   return (
-    <span className="inline-flex items-center gap-2.5">
+    <span className="inline-flex items-center gap-2.5 whitespace-nowrap">
       <span
         className={`flex items-center justify-center bg-gradient-to-br from-brand-700 to-brand-600 text-white shadow-md shadow-brand-500/30 ${tile}`}
       >

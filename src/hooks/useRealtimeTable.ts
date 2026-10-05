@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 /**
@@ -14,6 +14,10 @@ export function useRealtimeTable(
   options: { filter?: string; event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*' } = {}
 ) {
   const { filter, event = '*' } = options;
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   useEffect(() => {
     const channel = supabase
@@ -21,13 +25,12 @@ export function useRealtimeTable(
       .on(
         'postgres_changes',
         { event, schema: 'public', table, ...(filter ? { filter } : {}) },
-        () => onChange()
+        () => onChangeRef.current()
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table, filter, event]);
 }

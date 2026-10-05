@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
-import { fetchDonation, fetchDonationImages } from '../api/donations';
+import { fetchDonation, fetchDonationImages, cancelDonation } from '../api/donations';
 import { fetchClaimsForDonation, cancelClaim, confirmSelfPickup, confirmDelivery } from '../api/claims';
 import { fetchTaskForDonation } from '../api/tasks';
 import { getDonationImageUrl } from '../api/storage';
@@ -16,6 +16,7 @@ import { ClaimStatusBadge } from '../components/claims/ClaimStatusBadge';
 import { ReportDonationButton } from '../components/donations/ReportDonationButton';
 import { SaveDonationButton } from '../components/donations/SaveDonationButton';
 import { DonationStatusTimeline } from '../components/donations/DonationStatusTimeline';
+import { ContactCard } from '../components/donations/ContactCard';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/States';
@@ -43,6 +44,9 @@ export function DonationDetailPage() {
   const [confirming, setConfirming] = useState(false);
   const [cancellingClaim, setCancellingClaim] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
 
   useRealtimeTable('donations', refetch, { filter: `id=eq.${donationId}` });
   useRealtimeTable('donation_claims', () => { refetchClaims(); refetch(); }, { filter: `donation_id=eq.${donationId}` });
@@ -66,12 +70,20 @@ export function DonationDetailPage() {
     };
   }, [images]);
 
-  if (loading) return <LoadingSpinner label="Loading donation" />;
+  if (loading && !donation) return <LoadingSpinner label="Loading donation" />;
   if (error || !donation) return <ErrorState message={error ?? 'Donation not found.'} onRetry={refetch} />;
 
   const isDonor = donation.donorId === session?.user.id;
-  const myClaim = claims?.find((c) => c.claimantId === session?.user.id);
-  const acceptedClaim = claims?.find((c) => c.status === 'accepted');
+  // Claims are ordered oldest-first; the user's CURRENT request is their latest one,
+  // so an old cancelled/rejected request never hides a newer one (or the Request button).
+  const myClaims = (claims ?? []).filter((c) => c.claimantId === session?.user.id);
+  const myClaim = myClaims.length > 0 ? myClaims[myClaims.length - 1] : undefined;
+  const myClaimActive = myClaim?.status === 'pending' || myClaim?.status === 'accepted';
+  const acceptedClaim = claims?.find((c) => c.status === 'accepted' || c.status === 'completed');
+  const isAcceptedClaimant = acceptedClaim?.claimantId === session?.user.id;
+  const inFlight = donation.status === 'claimed' || donation.status === 'pickup_assigned';
+  const canCancel = inFlight && (isDonor || isAcceptedClaimant);
+  const showContacts = Boolean(acceptedClaim) && ['claimed', 'pickup_assigned', 'picked_up', 'delivered'].includes(donation.status);
   const pendingClaims = claims?.filter((c) => c.status === 'pending') ?? [];
 
   function refreshAll() {
@@ -92,6 +104,25 @@ export function DonationDetailPage() {
       showToast('error', getErrorMessage(err, 'Could not withdraw claim.'));
     } finally {
       setCancellingClaim(false);
+    }
+  }
+
+  async function handleCancelDonation() {
+    if (!cancelReason.trim()) {
+      showToast('error', 'Please give a short reason.');
+      return;
+    }
+    setCancelling(true);
+    try {
+      await cancelDonation(donation!.id, cancelReason.trim());
+      showToast('success', 'Cancelled. Everyone involved has been notified.');
+      setCancelOpen(false);
+      setCancelReason('');
+      refreshAll();
+    } catch (err) {
+      showToast('error', getErrorMessage(err, 'Could not cancel.'));
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -275,8 +306,8 @@ export function DonationDetailPage() {
         judgment before eating.
       </p>
 
-      {!isDonor && donation.status === 'available' && !myClaim && (
-        <div className="sticky bottom-16 z-10 -mx-4 mt-6 bg-gradient-to-t from-base-950 via-base-950 to-transparent px-4 pb-3 pt-6 md:static md:mx-0 md:bg-none md:px-0 md:pb-0 md:pt-0">
+      {!isDonor && donation.status === 'available' && !myClaimActive && (
+        <div className="sticky bottom-0 z-10 -mx-4 mt-6 bg-gradient-to-t from-base-950 via-base-950 to-transparent px-4 pb-3 pt-6 md:static md:mx-0 md:bg-none md:px-0 md:pb-0 md:pt-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <ClaimButton donationId={donation.id} onClaimed={refreshAll} />
         </div>
       )}
@@ -288,6 +319,9 @@ export function DonationDetailPage() {
             <ClaimStatusBadge status={myClaim.status} />
           </div>
           <p className="mt-1 text-xs text-ink-500">{FULFILLMENT_METHOD_LABELS[myClaim.fulfillmentMethod]}</p>
+          {(myClaim.status === 'rejected' || myClaim.status === 'cancelled') && donation.status === 'available' && (
+            <p className="mt-2 text-xs text-ink-500">That request ended. You can send a new one above.</p>
+          )}
 
           {myClaim.status === 'pending' && (
             <Button variant="ghost" className="mt-3" loading={cancellingClaim} onClick={handleCancelMyClaim}>
@@ -332,6 +366,67 @@ export function DonationDetailPage() {
             <Button className="mt-3" loading={confirming} onClick={handleConfirmDelivery}>
               Confirm delivery received
             </Button>
+          )}
+        </div>
+      )}
+
+      {showContacts && acceptedClaim && (isDonor || isAcceptedClaimant) && (
+        <div className="mt-6 flex flex-col gap-2 rounded-2xl border border-base-700 bg-base-900 p-5 shadow-card">
+          <h2 className="text-sm font-medium text-ink-100">Coordinate the hand-over</h2>
+          {isDonor ? (
+            <ContactCard
+              label="Recipient"
+              name={acceptedClaim.claimant?.fullName ?? 'Recipient'}
+              targetProfileId={acceptedClaim.claimantId}
+              donationId={donation.id}
+            />
+          ) : (
+            <ContactCard
+              label="Donor"
+              name="Donor"
+              targetProfileId={donation.donorId}
+              donationId={donation.id}
+            />
+          )}
+          {task?.volunteerId && (
+            <ContactCard
+              label="Volunteer"
+              name="Delivery volunteer"
+              targetProfileId={task.volunteerId}
+              donationId={donation.id}
+            />
+          )}
+        </div>
+      )}
+
+      {canCancel && (
+        <div className="mt-6 rounded-2xl border border-danger-500/30 bg-base-900 p-5 shadow-card">
+          {!cancelOpen ? (
+            <Button variant="ghost" onClick={() => setCancelOpen(true)}>
+              Cancel this {isDonor ? 'donation' : 'pickup'}
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-medium text-ink-100" htmlFor="cancel-reason">
+                Why are you cancelling?
+              </label>
+              <textarea
+                id="cancel-reason"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={3}
+                maxLength={300}
+                className="w-full rounded-xl border border-base-700 bg-base-800 p-3 text-sm text-ink-100"
+              />
+              <div className="flex gap-2">
+                <Button loading={cancelling} onClick={handleCancelDonation}>
+                  Confirm cancellation
+                </Button>
+                <Button variant="ghost" onClick={() => setCancelOpen(false)}>
+                  Keep it
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       )}

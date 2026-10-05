@@ -151,12 +151,17 @@ export interface BrowseFilters {
 }
 
 export async function fetchAvailableDonations(filters: BrowseFilters = {}): Promise<Donation[]> {
-  let query = supabase.from('donations').select('*').eq('status', 'available');
+  let query = supabase
+    .from('donations')
+    .select('*')
+    .eq('status', 'available')
+    // never list food whose pickup window has passed, even if the expiry sweep hasn't run
+    .gt('pickup_window_end', new Date().toISOString());
 
   if (filters.category) query = query.eq('category', filters.category);
   if (filters.quantityUnit) query = query.eq('quantity_unit', filters.quantityUnit);
   if (filters.isVegetarian !== undefined) query = query.eq('is_vegetarian', filters.isVegetarian);
-  if (filters.search) query = query.ilike('title', `%${filters.search}%`);
+  if (filters.search) query = query.ilike('title', `%${filters.search.replace(/[%_,()]/g, ' ')}%`);
 
   if (filters.sortBy === 'expiring_soon') {
     query = query.order('pickup_window_end', { ascending: true });
@@ -176,7 +181,8 @@ export async function fetchNearbyDonations(lat: number, lng: number, radiusM: nu
     radius_m: radiusM,
   });
   if (error) throw error;
-  return (data ?? []).map(mapDonation);
+  const now = Date.now();
+  return (data ?? []).map(mapDonation).filter((d) => new Date(d.pickupWindowEnd).getTime() > now);
 }
 
 export async function fetchDonationImages(donationId: string): Promise<DonationImage[]> {

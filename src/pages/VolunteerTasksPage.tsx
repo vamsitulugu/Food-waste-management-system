@@ -7,11 +7,14 @@ import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { getErrorMessage } from '../utils/errors';
+import { DeliveriesTabs } from '../components/volunteer/DeliveriesTabs';
+import { useNavigate } from 'react-router-dom';
 
 export function VolunteerTasksPage() {
   const { data: tasks, loading, error, refetch } = useAsyncData(fetchOpenTasks);
   const { showToast } = useToast();
   const [accepting, setAccepting] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useRealtimeTable('pickup_tasks', refetch, { filter: 'status=eq.open' });
 
@@ -19,8 +22,8 @@ export function VolunteerTasksPage() {
     setAccepting(taskId);
     try {
       await acceptPickupTask(taskId);
-      showToast('success', 'Task accepted. Check "My tasks" to get started.');
-      refetch();
+      showToast('success', 'Delivery accepted. Update its progress from here.');
+      navigate('/volunteer/my-tasks');
     } catch (err) {
       showToast('error', getErrorMessage(err, 'This task is no longer available.'));
       refetch();
@@ -31,6 +34,7 @@ export function VolunteerTasksPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <DeliveriesTabs />
       <div>
         <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Open delivery tasks</h1>
         <p className="mt-1 text-sm text-ink-500">Help bridge the gap between a donor and a recipient.</p>

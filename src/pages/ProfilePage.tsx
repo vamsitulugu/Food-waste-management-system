@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { updateProfile, fetchPhone, updatePhone, deactivateAccount } from '../api/profile';
 import { uploadAvatar, getAvatarUrl, deleteAvatarFile, validateImageFile } from '../api/storage';
 import { signOut } from '../api/auth';
-import { Bookmark, Truck, Building2, Bell } from 'lucide-react';
+import { Bookmark, Truck, Building2, Bell, PackageCheck, Shield } from 'lucide-react';
 import { getErrorMessage } from '../utils/errors';
 
 export function ProfilePage() {
@@ -146,9 +146,11 @@ export function ProfilePage() {
       <div className="grid grid-cols-2 gap-3">
         {[
           { to: '/saved', label: 'Saved', icon: Bookmark },
-          { to: '/volunteer/tasks', label: 'Deliveries', icon: Truck },
+          { to: '/volunteer/tasks', label: 'Open deliveries', icon: Truck },
+          { to: '/volunteer/my-tasks', label: 'My deliveries', icon: PackageCheck },
           { to: '/organizations', label: 'Organizations', icon: Building2 },
           { to: '/notifications', label: 'Notifications', icon: Bell },
+          ...(profile.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
         ].map(({ to, label, icon: Icon }) => (
           <Link
             key={to}

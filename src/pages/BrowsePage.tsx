@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { fetchAvailableDonations, fetchNearbyDonations, fetchPrimaryImageUrls } from '../api/donations';
@@ -21,6 +22,8 @@ export function BrowsePage() {
   const [donateOpen, setDonateOpen] = useState(false);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const { coords, loading: locLoading, error: locError, requestLocation } = useGeolocation();
+  const debouncedSearch = useDebouncedValue(filters.search, 350);
+  const effectiveFilters: BrowseFilters = { ...filters, search: debouncedSearch };
 
   const {
     data: donations,
@@ -31,11 +34,12 @@ export function BrowsePage() {
     () =>
       nearbyMode && coords
         ? fetchNearbyDonations(coords.latitude, coords.longitude, NEARBY_RADIUS_M)
-        : fetchAvailableDonations(filters),
-    [nearbyMode, coords?.latitude, coords?.longitude, filters.category, filters.isVegetarian, filters.search, filters.sortBy]
+        : fetchAvailableDonations(effectiveFilters),
+    [nearbyMode, coords?.latitude, coords?.longitude, filters.category, filters.isVegetarian, debouncedSearch, filters.sortBy]
   );
 
-  useRealtimeTable('donations', refetch, { filter: 'status=eq.available' });
+  // No status filter: we also need the UPDATE that takes a donation out of 'available'.
+  useRealtimeTable('donations', refetch);
 
   useEffect(() => {
     if (!donations || donations.length === 0) return;
@@ -50,12 +54,15 @@ export function BrowsePage() {
     };
   }, [donations]);
 
+  const waitingForLocation = nearbyMode && !coords;
   const visible =
-    nearbyMode && donations
+    waitingForLocation
+      ? []
+      : nearbyMode && donations
       ? donations.filter((d) => {
           if (filters.category && d.category !== filters.category) return false;
           if (filters.isVegetarian !== undefined && d.isVegetarian !== filters.isVegetarian) return false;
-          if (filters.search && !d.title.toLowerCase().includes(filters.search.toLowerCase())) return false;
+          if (debouncedSearch && !d.title.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
           return true;
         })
       : donations;
@@ -64,6 +71,9 @@ export function BrowsePage() {
     if (!nearbyMode) requestLocation();
     setNearbyMode((v) => !v);
   }
+
+  // If location is denied/unavailable, fall back to the full list instead of an empty page.
+  const showLocationFallback = nearbyMode && !coords && !locLoading && Boolean(locError);
 
   return (
     <div className="flex flex-col gap-7">
@@ -79,7 +89,9 @@ export function BrowsePage() {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">Available food near you</h1>
+          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">
+            {nearbyMode && coords ? 'Available food near you' : 'Available food'}
+          </h1>
           <p className="mt-1 text-sm font-medium text-ink-500">Surplus food currently available for pickup.</p>
         </div>
         <Button
@@ -96,19 +108,22 @@ export function BrowsePage() {
       <DonationFilters filters={filters} onChange={setFilters} />
       {locError && <p className="text-sm text-danger-400">{locError}</p>}
 
-      {loading && <DonationGridSkeleton count={6} />}
+      {showLocationFallback && (
+        <p className="text-sm text-ink-500">We couldn't get your location, so nearby mode is off. Turn it off to see all food.</p>
+      )}
+      {loading && !donations && <DonationGridSkeleton count={6} />}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
-      {!loading && !error && visible && visible.length === 0 && (
+      {!(loading && !donations) && !error && !waitingForLocation && visible && visible.length === 0 && (
         <EmptyState
           title="No donations available right now"
           description="Check back soon, or widen your search."
         />
       )}
 
-      {!loading && !error && visible && visible.length > 0 && (
+      {!error && visible && visible.length > 0 && (
         <div>
-          <h2 className="mb-4 font-display text-xl text-ink-100">
+          <h2 className={`mb-4 font-display text-xl text-ink-100 ${loading ? 'opacity-60' : ''}`}>
             {visible.length} {visible.length === 1 ? 'donation' : 'donations'} available
           </h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -51,16 +51,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setReady(true);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!mounted) return;
+      // Token refreshes / tab refocus must never flip `ready` back to false —
+      // that would unmount the whole app and wipe in-progress forms.
       setSession(newSession);
-      if (newSession?.user) {
-        setReady(false);
-        await loadProfile(newSession.user.id);
-        setReady(true);
-      } else {
+      if (!newSession?.user) {
         setProfile(null);
         setReady(true);
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        // Defer: awaiting a Supabase call inside this callback can deadlock.
+        const userId = newSession.user.id;
+        setTimeout(() => {
+          if (mounted) void loadProfile(userId).then(() => mounted && setReady(true));
+        }, 0);
       }
     });
 

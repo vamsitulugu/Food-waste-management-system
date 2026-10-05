@@ -15,32 +15,6 @@ import type {
 
 export type { UserRole };
 
-// Roles selectable at public signup. 'admin' is deliberately excluded —
-// it can never be chosen through the UI, and the backend trigger
-// independently enforces the same allow-list, so this restriction is
-// defense-in-depth, not the only guard.
-export const PUBLIC_ROLES: Exclude<UserRole, 'admin'>[] = [
-  'donor',
-  'recipient',
-  'ngo',
-  'volunteer',
-];
-
-export const ROLE_LABELS: Record<UserRole, string> = {
-  donor: 'Donor',
-  recipient: 'Recipient',
-  ngo: 'NGO / Food Bank',
-  volunteer: 'Volunteer',
-  admin: 'Admin',
-};
-
-export const ROLE_DESCRIPTIONS: Record<Exclude<UserRole, 'admin'>, string> = {
-  donor: 'I have surplus food to give — a restaurant, shop, event, or household.',
-  recipient: 'I want to find and collect available food for myself or my family.',
-  ngo: 'We collect and distribute food on behalf of a registered organization.',
-  volunteer: 'I want to help pick up and deliver food between donors and recipients.',
-};
-
 export interface Profile {
   id: string;
   fullName: string;
@@ -49,11 +23,6 @@ export interface Profile {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-/** Safe for a profile whose role hasn't been chosen yet (role === null). */
-export function roleLabel(role: UserRole | null | undefined): string {
-  return role ? ROLE_LABELS[role] : '';
 }
 
 export interface Organization {

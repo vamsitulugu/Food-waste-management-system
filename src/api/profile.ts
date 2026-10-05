@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabaseClient';
-import type { UserRole } from '../types/database';
 
 export interface UpdateProfileInput {
   fullName?: string;
@@ -40,8 +39,13 @@ export async function deactivateAccount(targetProfileId: string) {
   if (error) throw error;
 }
 
-/** One-time only — the RPC itself rejects a second call once a role is set. */
-export async function setInitialRole(role: Exclude<UserRole, 'admin'>) {
-  const { error } = await supabase.rpc('set_initial_role', { p_role: role });
+/** Phone of the other party on a donation. Only succeeds for donor, accepted
+ * claimant or assigned volunteer of that donation (enforced in the database). */
+export async function fetchContactPhone(targetProfileId: string, donationId: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('get_pickup_contact_info', {
+    p_target_profile_id: targetProfileId,
+    p_donation_id: donationId,
+  });
   if (error) throw error;
+  return (data as string | null) ?? null;
 }

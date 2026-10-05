@@ -50,7 +50,9 @@ The schema, security policies, and all business logic live entirely in
 | `0002_phase3_schema.sql` | Full domain schema — organizations, donations, claims, pickup tasks, notifications, saved donations, reports, audit logs — every RLS policy and every lifecycle RPC |
 | `0003_phase5_storage.sql` | The `donation-images` Storage bucket + RLS, and `sweep_expired_donations()` |
 | `0004_security_hardening.sql` | Fixes an authorization bug found in a follow-up security audit (see §9), adds organization-attributed claims, adds the `avatars` Storage bucket |
-| `0005_deferred_role_selection.sql` | Moves role selection from the signup form to a post-login `/choose-role` screen — `profiles.role` becomes nullable, `set_initial_role()` is the one-time RPC that sets it |
+| `0005_deferred_role_selection.sql` | Historical: made `profiles.role` nullable and added `set_initial_role()` (superseded — the app no longer has a role-choice step) |
+| `0006_fix_rls_recursion_and_open_roles.sql` | Fixes RLS recursion with `security definer` helper functions; opens delivery tasks to any signed-in user. **Applied by `supabase db push` like the others** |
+| `0007_v2_workflow_fixes.sql` | V2 workflow fixes: adds tables to the `supabase_realtime` publication, `cancel_donation()` rejects pending claims and cancels open tasks, org owners can't be removed by admins, donors/recipients can't deliver their own food, deactivated accounts can't request food and have live activity cancelled, `nearby_donations()` skips expired food |
 
 **Apply them:**
 
@@ -81,7 +83,6 @@ claim get marked `expired` and the donor is notified):
 ## 4. Configure the frontend
 
 ```bash
-cd food-waste-app
 npm install
 cp .env.example .env
 ```
@@ -129,12 +130,7 @@ Every admin after this one should be created from `/admin/users` → "Promote to
 
 Run through this checklist to confirm everything is wired correctly:
 
-1. **Signup/roles**: create a new account (name/email/password only — no role field on
-   signup). Confirm you're redirected to `/choose-role` on first login, and that skipping it
-   (e.g. navigating straight to `/dashboard` by URL) bounces you back to it. Pick a role and
-   confirm you land on a role-appropriate dashboard afterward, and that revisiting
-   `/choose-role` directly now redirects you to `/dashboard` instead (one-time only). Repeat
-   for all four public roles across separate accounts.
+1. **Signup**: create a new account (name/email/password only). There are no account types — you land on `/browse` and can donate, request food, and deliver. Only accounts promoted to admin see the Admin area.
 2. **Donation lifecycle**: as the donor, create a donation (`/donations/new`), upload a photo,
    publish it. Confirm it's invisible to other accounts until published.
 3. **Claim + realtime**: as the recipient, browse to it and submit a claim. Confirm the donor
@@ -163,13 +159,7 @@ Run through this checklist to confirm everything is wired correctly:
 
 ## 7. What's implemented, by phase
 
-**Phase 2 — Auth & roles.** Signup collects only name/email/password. Role (Donor, Recipient,
-NGO, Volunteer) is chosen **inside the app on first login**, via `/choose-role` — not on the
-signup form (`0005_deferred_role_selection.sql`). `profiles.role` is nullable until then;
-`RequireAuth` redirects any role-required route to `/choose-role` while it's unset, and
-`set_initial_role()` is a one-time RPC (rejects a second call once a role exists) that
-structurally cannot produce `admin` — same guarantee as the old signup-time trigger, just moved
-to a different screen. Login/logout, session persistence unchanged.
+**Phase 2 — Auth.** Signup collects only name/email/password. There are no account types: every user can donate, request, and volunteer to deliver. `admin` is the only special role and can only be granted with `provision_admin()` / SQL, never through the UI. Login/logout and session persistence as before.
 
 **Phase 3 — Schema & security.** Full schema + RLS matrix + lifecycle RPCs for every domain
 table: manual-only claim acceptance, dual fulfillment paths (self-pickup vs. volunteer-assisted),
