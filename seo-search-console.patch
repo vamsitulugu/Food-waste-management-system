@@ -1,0 +1,71 @@
+From 77685f60412e3656f1d90154d80b8d79d67ced2f Mon Sep 17 00:00:00 2001
+From: x <x@x>
+Date: Mon, 5 Oct 2026 11:22:09 +0000
+Subject: [PATCH] Add SEO meta, robots.txt, sitemap.xml for Search Console
+
+---
+ index.html         |  9 +++++++++
+ public/robots.txt  | 17 +++++++++++++++++
+ public/sitemap.xml |  6 ++++++
+ 3 files changed, 32 insertions(+)
+ create mode 100644 public/robots.txt
+ create mode 100644 public/sitemap.xml
+
+diff --git a/index.html b/index.html
+index 63954d6..dbb2e78 100644
+--- a/index.html
++++ b/index.html
+@@ -6,6 +6,15 @@
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <meta name="theme-color" content="#f26b1d" />
+     <title>Second Serving — rescue surplus food</title>
++    <meta name="description" content="Second Serving connects food donors with NGOs and volunteers so surplus food reaches people who need it instead of going to waste." />
++    <link rel="canonical" href="https://secondserving.vercel.app/" />
++    <meta property="og:type" content="website" />
++    <meta property="og:site_name" content="Second Serving" />
++    <meta property="og:title" content="Second Serving — rescue surplus food" />
++    <meta property="og:description" content="Donate, claim and deliver surplus food. Connect donors, NGOs and volunteers in one place." />
++    <meta property="og:url" content="https://secondserving.vercel.app/" />
++    <meta name="twitter:card" content="summary" />
++    <!-- Paste the google-site-verification meta tag from Search Console here -->
+   </head>
+   <body>
+     <div id="root"></div>
+diff --git a/public/robots.txt b/public/robots.txt
+new file mode 100644
+index 0000000..876717f
+--- /dev/null
++++ b/public/robots.txt
+@@ -0,0 +1,17 @@
++User-agent: *
++Allow: /$
++Allow: /login
++Allow: /signup
++Disallow: /dashboard
++Disallow: /browse
++Disallow: /profile
++Disallow: /organizations
++Disallow: /donations
++Disallow: /my-donations
++Disallow: /my-claims
++Disallow: /saved
++Disallow: /notifications
++Disallow: /volunteer
++Disallow: /admin
++
++Sitemap: https://secondserving.vercel.app/sitemap.xml
+diff --git a/public/sitemap.xml b/public/sitemap.xml
+new file mode 100644
+index 0000000..6a08ee8
+--- /dev/null
++++ b/public/sitemap.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
++  <url><loc>https://secondserving.vercel.app/</loc></url>
++  <url><loc>https://secondserving.vercel.app/login</loc></url>
++  <url><loc>https://secondserving.vercel.app/signup</loc></url>
++</urlset>
+-- 
+2.43.0
+

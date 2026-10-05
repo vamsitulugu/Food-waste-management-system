@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /$
+Allow: /login
+Allow: /signup
+Disallow: /dashboard
+Disallow: /browse
+Disallow: /profile
+Disallow: /organizations
+Disallow: /donations
+Disallow: /my-donations
+Disallow: /my-claims
+Disallow: /saved
+Disallow: /notifications
+Disallow: /volunteer
+Disallow: /admin
+
+Sitemap: https://secondserving.vercel.app/sitemap.xml
