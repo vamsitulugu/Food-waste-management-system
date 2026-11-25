@@ -28,6 +28,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminDonationsPage } from './pages/admin/AdminDonationsPage';
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ChatbotWidget } from './components/chatbot/ChatbotWidget';
 
 export default function App() {
   return (
@@ -118,6 +119,7 @@ export default function App() {
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          <ChatbotWidget />
         </AuthProvider>
       </BrowserRouter>
     </ToastProvider>

@@ -1,0 +1,716 @@
+diff --git a/README.md b/README.md
+index 4e23ecd..93b7567 100644
+--- a/README.md
++++ b/README.md
+@@ -53,6 +53,7 @@ The schema, security policies, and all business logic live entirely in
+ | `0005_deferred_role_selection.sql` | Historical: made `profiles.role` nullable and added `set_initial_role()` (superseded — the app no longer has a role-choice step) |
+ | `0006_fix_rls_recursion_and_open_roles.sql` | Fixes RLS recursion with `security definer` helper functions; opens delivery tasks to any signed-in user. **Applied by `supabase db push` like the others** |
+ | `0007_v2_workflow_fixes.sql` | V2 workflow fixes: adds tables to the `supabase_realtime` publication, `cancel_donation()` rejects pending claims and cancels open tasks, org owners can't be removed by admins, donors/recipients can't deliver their own food, deactivated accounts can't request food and have live activity cancelled, `nearby_donations()` skips expired food |
++| `0008_help_chatbot.sql` | In-app help chatbot: `help_faqs` knowledge base (public read, admin write), `help_unanswered` log, typo-tolerant `search_help_faqs()` RPC, `log_unanswered_question()`, and ~32 seeded answers about the app. Safe to re-run |
+ 
+ **Apply them:**
+ 
+@@ -199,6 +200,8 @@ frontend guard.
+ 
+ **Saved donations.** Bookmark any donation; `/saved` lists them.
+ 
++**Help chatbot.** A floating chat button (bottom-right, on every page, signed in or out) answers questions about the app from the `help_faqs` table. To add or change answers, edit rows in `help_faqs` (Table Editor or SQL) with no redeploy; `keywords` are lower-case words/phrases people might type. Questions it could not answer are saved in `help_unanswered` (admins can read them in the Table Editor).
++
+ **Avatar upload.** Private `avatars` Storage bucket, own-file-only RLS, resolved via signed URL.
+ 
+ **Not built / explicitly deferred:**
+diff --git a/src/App.tsx b/src/App.tsx
+index 0a68345..097ba22 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -28,6 +28,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+ import { AdminDonationsPage } from './pages/admin/AdminDonationsPage';
+ import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage';
+ import { NotFoundPage } from './pages/NotFoundPage';
++import { ChatbotWidget } from './components/chatbot/ChatbotWidget';
+ 
+ export default function App() {
+   return (
+@@ -118,6 +119,7 @@ export default function App() {
+ 
+             <Route path="*" element={<NotFoundPage />} />
+           </Routes>
++          <ChatbotWidget />
+         </AuthProvider>
+       </BrowserRouter>
+     </ToastProvider>
+diff --git a/src/api/chatbot.ts b/src/api/chatbot.ts
+new file mode 100644
+index 0000000..09352d4
+--- /dev/null
++++ b/src/api/chatbot.ts
+@@ -0,0 +1,43 @@
++import { supabase } from '../lib/supabaseClient';
++
++export interface HelpAnswer {
++  id: string;
++  category: string;
++  question: string;
++  answer: string;
++  linkPath: string | null;
++  linkLabel: string | null;
++  score: number;
++}
++
++/** Matches below this score are treated as "the bot does not know". */
++export const MIN_CONFIDENCE = 1.0;
++
++export const MAX_QUESTION_LENGTH = 300;
++
++/** Ranks the help FAQs in the database against a free-text question. Works signed-in or signed-out. */
++export async function searchHelp(query: string, limit = 4): Promise<HelpAnswer[]> {
++  const { data, error } = await supabase.rpc('search_help_faqs', {
++    p_query: query.slice(0, MAX_QUESTION_LENGTH),
++    p_limit: limit,
++  });
++  if (error) throw error;
++  return (data ?? []).map((row) => ({
++    id: row.id,
++    category: row.category,
++    question: row.question,
++    answer: row.answer,
++    linkPath: row.link_path,
++    linkLabel: row.link_label,
++    score: row.score,
++  }));
++}
++
++/** Lets admins see which questions the bot could not answer. Never throws: it is best-effort. */
++export async function logUnansweredQuestion(query: string): Promise<void> {
++  try {
++    await supabase.rpc('log_unanswered_question', { p_query: query.slice(0, MAX_QUESTION_LENGTH) });
++  } catch {
++    /* ignore */
++  }
++}
+diff --git a/src/components/chatbot/ChatbotWidget.tsx b/src/components/chatbot/ChatbotWidget.tsx
+new file mode 100644
+index 0000000..47a1700
+--- /dev/null
++++ b/src/components/chatbot/ChatbotWidget.tsx
+@@ -0,0 +1,223 @@
++import { useEffect, useRef, useState } from 'react';
++import { Link } from 'react-router-dom';
++import { ArrowRight, Bot, MessageCircle, Send, X } from 'lucide-react';
++import {
++  MAX_QUESTION_LENGTH,
++  MIN_CONFIDENCE,
++  logUnansweredQuestion,
++  searchHelp,
++  type HelpAnswer,
++} from '../../api/chatbot';
++
++type Message =
++  | { id: number; from: 'user'; text: string }
++  | { id: number; from: 'bot'; text: string; linkPath?: string | null; linkLabel?: string | null; related?: HelpAnswer[] };
++
++const STARTERS = [
++  'What is Second Serving?',
++  'How do I donate food?',
++  'How do I request food?',
++  'How can I volunteer to deliver?',
++  'Is it free?',
++];
++
++const GREETING =
++  'Hi! I can answer questions about Second Serving: what it is, where things are, and how to donate, request or deliver food. What would you like to know?';
++
++const FALLBACK =
++  "Sorry, I couldn't find an answer to that. I only know about how Second Serving works. Try rephrasing, or pick one of these:";
++
++export function ChatbotWidget() {
++  const [open, setOpen] = useState(false);
++  const [input, setInput] = useState('');
++  const [busy, setBusy] = useState(false);
++  const [messages, setMessages] = useState<Message[]>([{ id: 0, from: 'bot', text: GREETING }]);
++  const nextId = useRef(1);
++  const inputRef = useRef<HTMLInputElement>(null);
++  const listRef = useRef<HTMLDivElement>(null);
++  const launcherRef = useRef<HTMLButtonElement>(null);
++
++  useEffect(() => {
++    if (!open) return;
++    inputRef.current?.focus();
++    const onKey = (e: KeyboardEvent) => {
++      if (e.key === 'Escape') {
++        setOpen(false);
++        launcherRef.current?.focus();
++      }
++    };
++    document.addEventListener('keydown', onKey);
++    return () => document.removeEventListener('keydown', onKey);
++  }, [open]);
++
++  useEffect(() => {
++    const el = listRef.current;
++    if (el) el.scrollTop = el.scrollHeight;
++  }, [messages, busy, open]);
++
++  function push(msg: DistributiveOmit<Message, 'id'>) {
++    setMessages((prev) => [...prev, { ...msg, id: nextId.current++ } as Message]);
++  }
++
++  /** Show an FAQ the person picked from the suggestions, without another search. */
++  function showAnswer(item: HelpAnswer) {
++    push({ from: 'user', text: item.question });
++    push({ from: 'bot', text: item.answer, linkPath: item.linkPath, linkLabel: item.linkLabel });
++  }
++
++  async function ask(raw: string) {
++    const question = raw.trim().slice(0, MAX_QUESTION_LENGTH);
++    if (!question || busy) return;
++    setInput('');
++    push({ from: 'user', text: question });
++    setBusy(true);
++    try {
++      const results = await searchHelp(question, 4);
++      const best = results[0];
++      if (best && best.score >= MIN_CONFIDENCE) {
++        const related = results.slice(1).filter((r) => r.score >= MIN_CONFIDENCE).slice(0, 2);
++        push({ from: 'bot', text: best.answer, linkPath: best.linkPath, linkLabel: best.linkLabel, related });
++      } else {
++        push({ from: 'bot', text: FALLBACK, related: results.slice(0, 3) });
++        void logUnansweredQuestion(question);
++      }
++    } catch {
++      push({ from: 'bot', text: 'Something went wrong while looking that up. Please try again in a moment.' });
++    } finally {
++      setBusy(false);
++      inputRef.current?.focus();
++    }
++  }
++
++  return (
++    <>
++      {open && (
++        <section
++          role="dialog"
++          aria-label="Help chatbot"
++          className="fixed bottom-20 right-4 z-40 flex h-[32rem] max-h-[calc(100dvh-6rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-base-700 bg-base-900 shadow-card-hover sm:right-6"
++        >
++          <header className="flex shrink-0 items-center gap-3 bg-brand-500 px-4 py-3 text-white">
++            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
++              <Bot size={20} />
++            </span>
++            <div className="min-w-0 flex-1">
++              <p className="font-display text-base leading-tight">Second Serving Help</p>
++              <p className="text-xs text-white/85">Ask me anything about the app</p>
++            </div>
++            <button
++              onClick={() => {
++                setOpen(false);
++                launcherRef.current?.focus();
++              }}
++              aria-label="Close chat"
++              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/20"
++            >
++              <X size={18} />
++            </button>
++          </header>
++
++          <div ref={listRef} role="log" aria-live="polite" className="flex-1 space-y-3 overflow-y-auto bg-base-950 px-3 py-4">
++            {messages.map((m) =>
++              m.from === 'user' ? (
++                <div key={m.id} className="flex justify-end">
++                  <p className="max-w-[85%] whitespace-pre-line break-words rounded-2xl rounded-br-md bg-brand-500 px-3.5 py-2 text-sm text-white">
++                    {m.text}
++                  </p>
++                </div>
++              ) : (
++                <div key={m.id} className="flex flex-col items-start gap-2">
++                  <div className="max-w-[90%] rounded-2xl rounded-bl-md bg-base-900 px-3.5 py-2.5 text-sm text-ink-300 shadow-card">
++                    <p className="whitespace-pre-line break-words">{m.text}</p>
++                    {m.linkPath && (
++                      <Link
++                        to={m.linkPath}
++                        onClick={() => setOpen(false)}
++                        className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand-400 hover:underline"
++                      >
++                        {m.linkLabel ?? 'Open'} <ArrowRight size={14} />
++                      </Link>
++                    )}
++                  </div>
++                  {m.related && m.related.length > 0 && (
++                    <div className="flex flex-wrap gap-1.5">
++                      {m.related.map((r) => (
++                        <button
++                          key={r.id}
++                          onClick={() => showAnswer(r)}
++                          className="rounded-full border border-brand-500/40 bg-base-900 px-3 py-1 text-left text-xs font-semibold text-brand-400 hover:bg-brand-500/10"
++                        >
++                          {r.question}
++                        </button>
++                      ))}
++                    </div>
++                  )}
++                </div>
++              ),
++            )}
++
++            {messages.length === 1 && (
++              <div className="flex flex-wrap gap-1.5">
++                {STARTERS.map((s) => (
++                  <button
++                    key={s}
++                    onClick={() => void ask(s)}
++                    className="rounded-full border border-brand-500/40 bg-base-900 px-3 py-1 text-xs font-semibold text-brand-400 hover:bg-brand-500/10"
++                  >
++                    {s}
++                  </button>
++                ))}
++              </div>
++            )}
++
++            {busy && (
++              <div className="flex" aria-label="Typing">
++                <span className="rounded-2xl rounded-bl-md bg-base-900 px-3.5 py-2.5 text-sm text-ink-500 shadow-card">
++                  Looking that up…
++                </span>
++              </div>
++            )}
++          </div>
++
++          <form
++            onSubmit={(e) => {
++              e.preventDefault();
++              void ask(input);
++            }}
++            className="flex shrink-0 items-center gap-2 border-t border-base-700 bg-base-900 p-3"
++          >
++            <input
++              ref={inputRef}
++              value={input}
++              onChange={(e) => setInput(e.target.value)}
++              maxLength={MAX_QUESTION_LENGTH}
++              placeholder="Type your question…"
++              aria-label="Your question"
++              className="min-w-0 flex-1 rounded-xl border border-base-600 bg-base-950 px-3 py-2 text-sm text-ink-100 placeholder:text-ink-500 focus:border-brand-500 focus:outline-none"
++            />
++            <button
++              type="submit"
++              disabled={busy || !input.trim()}
++              aria-label="Send question"
++              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white transition-colors hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-50"
++            >
++              <Send size={18} />
++            </button>
++          </form>
++        </section>
++      )}
++
++      <button
++        ref={launcherRef}
++        onClick={() => setOpen((v) => !v)}
++        aria-label={open ? 'Close help chat' : 'Open help chat'}
++        aria-expanded={open}
++        className="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-lg shadow-brand-500/30 transition-colors hover:bg-brand-400 sm:right-6"
++      >
++        {open ? <X size={24} /> : <MessageCircle size={26} />}
++      </button>
++    </>
++  );
++}
++
++type DistributiveOmit<T, K extends keyof never> = T extends unknown ? Omit<T, K> : never;
+diff --git a/src/types/database.ts b/src/types/database.ts
+index 739dd77..e9a49fc 100644
+--- a/src/types/database.ts
++++ b/src/types/database.ts
+@@ -318,6 +318,19 @@ export interface Database {
+         Args: { user_lat: number; user_lng: number; radius_m: number };
+         Returns: Database['public']['Tables']['donations']['Row'][];
+       };
++      search_help_faqs: {
++        Args: { p_query: string; p_limit?: number };
++        Returns: {
++          id: string;
++          category: string;
++          question: string;
++          answer: string;
++          link_path: string | null;
++          link_label: string | null;
++          score: number;
++        }[];
++      };
++      log_unanswered_question: { Args: { p_query: string }; Returns: void };
+     };
+   };
+ }
+diff --git a/supabase/migrations/0008_help_chatbot.sql b/supabase/migrations/0008_help_chatbot.sql
+new file mode 100644
+index 0000000..7a399ba
+--- /dev/null
++++ b/supabase/migrations/0008_help_chatbot.sql
+@@ -0,0 +1,367 @@
++-- ============================================================
++-- 0008 — In-app help chatbot (FAQ knowledge base + search)
++--   1. pg_trgm for typo-tolerant matching
++--   2. help_faqs          : the chatbot's knowledge base (public read, admin write)
++--   3. help_unanswered    : questions the bot could not answer (insert-only for users, admin read)
++--   4. search_help_faqs() : ranks FAQs for a free-text question
++--   5. log_unanswered_question()
++--   6. Seed answers about Second Serving (idempotent)
++-- Safe to re-run.
++-- ============================================================
++
++-- ------------------------------------------------------------
++-- 1. Extension
++-- ------------------------------------------------------------
++create schema if not exists extensions;
++create extension if not exists pg_trgm with schema extensions;
++
++-- ------------------------------------------------------------
++-- 2. Knowledge base
++-- ------------------------------------------------------------
++create table if not exists help_faqs (
++  id          uuid primary key default gen_random_uuid(),
++  slug        text not null unique,
++  category    text not null,
++  question    text not null,
++  answer      text not null,
++  keywords    text[] not null default '{}',   -- lower-case words / phrases people may type
++  link_path   text,                           -- in-app route, e.g. /donations/new
++  link_label  text,
++  sort_order  int  not null default 100,
++  is_active   boolean not null default true,
++  created_at  timestamptz not null default now(),
++  updated_at  timestamptz not null default now(),
++  constraint help_faqs_link_path_internal check (link_path is null or link_path like '/%')
++);
++
++alter table help_faqs enable row level security;
++
++drop policy if exists "help_faqs public read" on help_faqs;
++create policy "help_faqs public read" on help_faqs
++  for select to anon, authenticated
++  using (is_active or is_admin(auth.uid()));
++
++drop policy if exists "help_faqs admin write" on help_faqs;
++create policy "help_faqs admin write" on help_faqs
++  for all to authenticated
++  using (is_admin(auth.uid()))
++  with check (is_admin(auth.uid()));
++
++-- ------------------------------------------------------------
++-- 3. Unanswered questions (lets admins see what to add next)
++-- ------------------------------------------------------------
++create table if not exists help_unanswered (
++  id          uuid primary key default gen_random_uuid(),
++  query       text not null check (char_length(query) between 1 and 300),
++  user_id     uuid references profiles(id) on delete set null,
++  created_at  timestamptz not null default now()
++);
++
++alter table help_unanswered enable row level security;
++
++drop policy if exists "help_unanswered admin read" on help_unanswered;
++create policy "help_unanswered admin read" on help_unanswered
++  for select to authenticated
++  using (is_admin(auth.uid()));
++
++drop policy if exists "help_unanswered admin delete" on help_unanswered;
++create policy "help_unanswered admin delete" on help_unanswered
++  for delete to authenticated
++  using (is_admin(auth.uid()));
++-- No insert policy on purpose: inserts only go through log_unanswered_question().
++
++-- Explicit table grants (RLS above is what actually restricts access)
++grant select on help_faqs to anon, authenticated;
++grant insert, update, delete on help_faqs to authenticated;
++grant select, delete on help_unanswered to authenticated;
++
++-- ------------------------------------------------------------
++-- 4. Search
++--    score = keyword phrase hits (1.5) + fuzzy single-word keyword hits (0.8)
++--          + 2 * trigram similarity to the question + 3 * full-text rank
++--    The client treats score >= 1.0 as "confident enough to answer".
++-- ------------------------------------------------------------
++create or replace function search_help_faqs(p_query text, p_limit int default 3)
++returns table (
++  id uuid,
++  category text,
++  question text,
++  answer text,
++  link_path text,
++  link_label text,
++  score real
++)
++language sql
++stable
++security invoker
++set search_path = public, extensions, pg_temp
++as $$
++  with q as (
++    select
++      nullif(trim(regexp_replace(lower(left(coalesce(p_query, ''), 300)), '[^a-z0-9 ]', ' ', 'g')), '') as text,
++      array(
++        select t
++        from unnest(regexp_split_to_array(
++          trim(regexp_replace(lower(left(coalesce(p_query, ''), 300)), '[^a-z0-9 ]', ' ', 'g')), '\s+'
++        )) as t
++        where char_length(t) >= 3
++      ) as tokens
++  )
++  select
++    f.id, f.category, f.question, f.answer, f.link_path, f.link_label,
++    (
++      coalesce((
++        select sum(
++          case
++            when position(' ' || k || ' ' in ' ' || q.text || ' ') > 0 then 1.5
++            when k !~ '\s' and exists (
++              select 1 from unnest(q.tokens) t where similarity(t, k) >= 0.55
++            ) then 0.8
++            else 0
++          end)
++        from unnest(f.keywords) as k
++      ), 0)
++      + 2 * similarity(f.question, q.text)
++      + 3 * ts_rank(
++          to_tsvector('english', f.question || ' ' || f.answer),
++          plainto_tsquery('english', q.text)
++        )
++    )::real as score
++  from help_faqs f, q
++  where q.text is not null
++    and f.is_active
++  order by score desc, f.sort_order, f.question
++  limit greatest(1, least(coalesce(p_limit, 3), 10));
++$$;
++
++revoke all on function search_help_faqs(text, int) from public;
++grant execute on function search_help_faqs(text, int) to anon, authenticated;
++
++-- ------------------------------------------------------------
++-- 5. Log a question the bot could not answer
++-- ------------------------------------------------------------
++create or replace function log_unanswered_question(p_query text)
++returns void
++language plpgsql
++security definer
++set search_path = public, pg_temp
++as $$
++declare
++  v_q text := left(trim(coalesce(p_query, '')), 300);
++begin
++  if char_length(v_q) = 0 then
++    return;
++  end if;
++  insert into help_unanswered (query, user_id) values (v_q, auth.uid());
++end;
++$$;
++
++revoke all on function log_unanswered_question(text) from public;
++grant execute on function log_unanswered_question(text) to anon, authenticated;
++
++-- ------------------------------------------------------------
++-- 6. Seed content (upsert by slug, so re-running refreshes the text)
++-- ------------------------------------------------------------
++insert into help_faqs (slug, category, question, answer, keywords, link_path, link_label, sort_order) values
++
++('what-is-app', 'About',
++ 'What is Second Serving?',
++ 'Second Serving is a free web app that connects people who have surplus food with people who need it, so good food gets shared instead of wasted. Anyone can donate food, request food, or volunteer to deliver it. Organizations such as NGOs, food banks, restaurants and shops can also register and take part.',
++ array['what is this app','what is second serving','about','second serving','purpose','food waste','overview','introduction','what does this app do','what is this website','what is this platform'],
++ '/browse', 'Browse food', 1),
++
++('where-is-app', 'About',
++ 'Where is the app? Where can I use it?',
++ 'Second Serving is a website, so you use it in your browser on your phone or computer. There is nothing to install. Donations show a pickup address and map location, and you can use "Use my location" on the Home page to see food near you (within 15 km).',
++ array['where is this app','where is the app','where is second serving','where can i use','available in','which city','which area','which country','install','download','mobile app','phone app','is there an app','website link'],
++ '/browse', 'Open Home', 2),
++
++('is-free', 'About',
++ 'Is it free? Do I have to pay anything?',
++ 'Yes, it is completely free. There are no payments on the platform, neither for donors nor for people receiving food.',
++ array['free','cost','price','pay','payment','charge','fee','fees','charges','money','paid','subscription'],
++ null, null, 3),
++
++('who-can-use', 'About',
++ 'Who can use the app?',
++ 'Anyone with an account. There are no separate account types: every user can donate food, request food, and volunteer to deliver. The only special role is admin, which is given only by existing admins and is used for moderation.',
++ array['who can use','who can join','account type','role','roles','user type','eligible','individual','restaurant','ngo','recipient','donor','volunteer','all users'],
++ null, null, 4),
++
++('how-signup', 'Account',
++ 'How do I create an account?',
++ 'Click Sign up and enter your name, email and a password. You do not need to choose an account type. Depending on how the app is configured, you may get an email to confirm your address before you can log in. After that you land on the Home page, where you can browse food, donate or deliver.',
++ array['sign up','signup','register account','register as user','create account','new account','registration','get started','how to start','email confirmation','confirm email'],
++ '/signup', 'Sign up', 5),
++
++('how-login', 'Account',
++ 'How do I log in or log out?',
++ 'Use the Log in page with your email and password. To log out, use the sign-out icon in the top bar on desktop, or open the menu on your phone and choose Sign out.',
++ array['login','log in','sign in','logout','log out','sign out','cannot login','cant login','access account'],
++ '/login', 'Log in', 6),
++
++('forgot-password', 'Account',
++ 'I forgot my password. How can I reset it?',
++ 'The app does not have a self-service password reset page yet. Please contact the app administrator and ask them to help you regain access to your account.',
++ array['forgot password','reset password','change password','lost password','password','cannot remember','forgot'],
++ null, null, 7),
++
++('edit-profile', 'Account',
++ 'How do I edit my profile, phone number or photo?',
++ 'Open Profile & settings from the top bar or menu. There you can change your name, add a phone number, and upload a profile photo. Your phone number is private and is not shown publicly.',
++ array['profile','edit profile','change name','phone number','add phone','avatar','photo','picture','settings','account settings','update details'],
++ '/profile', 'Open profile', 8),
++
++('delete-account', 'Account',
++ 'How do I deactivate my account?',
++ 'Go to Profile & settings and choose deactivate. Deactivating cancels your live donations, requests and delivery tasks, and an inactive account cannot request food. Please make sure you have no pickups in progress before you do it.',
++ array['deactivate','delete account','close account','remove account','disable account','leave','quit','unsubscribe'],
++ '/profile', 'Open profile', 9),
++
++('how-donate', 'Donating',
++ 'How do I donate food?',
++ 'Click the Donate button, then fill in the donation form: title, description, category (cooked meals, bakery, produce, dairy, packaged, beverages, grains and staples, other), quantity, expiry time, pickup window, pickup address and food-safety details such as storage and allergens. You can add a photo. Your donation starts as a draft and only becomes visible to others when you publish it.',
++ array['donate','donation','give food','share food','post food','add food','list food','new donation','how to donate','surplus','leftover','upload food','create donation'],
++ '/donations/new', 'Donate food', 10),
++
++('donation-draft-publish', 'Donating',
++ 'Why can nobody see my donation?',
++ 'New donations are saved as drafts, and drafts are private. Open the donation from My Donations and publish it. Once published its status becomes Available and other users can see and request it.',
++ array['draft','publish','not visible','cannot see my donation','invisible','not showing','hidden','not appearing','post not showing'],
++ '/my-donations', 'My Donations', 11),
++
++('edit-cancel-donation', 'Donating',
++ 'Can I edit or cancel my donation?',
++ 'You can edit a donation while it is a draft or Available. You can cancel it any time before it is completed, cancelled, expired or rejected, but you must give a reason. Cancelling also rejects pending requests and cancels any open delivery task. Open it from My Donations to see the options.',
++ array['edit donation','change donation','update donation','cancel donation','delete donation','remove donation','modify','withdraw donation','undo'],
++ '/my-donations', 'My Donations', 12),
++
++('donation-photos', 'Donating',
++ 'Can I add photos to a donation?',
++ 'Yes. The donation form has an image uploader. Photos are stored privately and are shown only through the app.',
++ array['photo','image','picture','upload image','upload photo','pic','camera'],
++ '/donations/new', 'Donate food', 13),
++
++('food-safety', 'Donating',
++ 'What food safety information should I give?',
++ 'The donation form asks for the prepared time, expiry time, storage requirement (room temperature, refrigerated or frozen), packaging condition, vegetarian or not, and allergens. Please fill these in honestly so recipients can decide safely. Do not donate food that is spoiled or past its expiry.',
++ array['food safety','safe','allergen','allergy','expiry','expire','storage','refrigerate','vegetarian','veg','non veg','hygiene','quality','spoiled','packaging'],
++ '/donations/new', 'Donate food', 14),
++
++('how-find-food', 'Receiving food',
++ 'How do I find food near me?',
++ 'Open Home. You can search by keyword, filter by category and diet, and sort by newest or expiring soon. Press "Use my location" to see food within 15 km. Your browser asks for permission first, and your location is used only for that.',
++ array['find food','browse','search','near me','nearby','close to me','search food','available food','filter','category','sort','look for food','where to get food','gps'],
++ '/browse', 'Browse food', 20),
++
++('how-request', 'Receiving food',
++ 'How do I request food?',
++ 'Open a donation from Home and submit a request. You choose how you will get it: self-pickup or volunteer-assisted delivery. You may add a message to the donor. If you belong to an organization, you can request on its behalf using "Claiming as". The donor reviews requests and accepts one manually.',
++ array['request','claim','get food','take food','receive food','book food','ask for food','reserve','how to claim','how to request','apply','order'],
++ '/browse', 'Browse food', 21),
++
++('request-status', 'Receiving food',
++ 'What do the request statuses mean?',
++ 'Pending means the donor has not decided yet. Accepted means the donor chose you. Rejected means the donor chose someone else or declined. Cancelled means it was withdrawn. Completed means the food was picked up or delivered. You can follow all your requests on My Requests.',
++ array['request status','claim status','pending','accepted','rejected','cancelled','completed','status meaning','what does pending mean','my requests','track request'],
++ '/my-claims', 'My Requests', 22),
++
++('withdraw-request', 'Receiving food',
++ 'Can I cancel or withdraw my request?',
++ 'Yes. Open My Requests and cancel it. Please do it as early as possible so the donor can give the food to someone else.',
++ array['cancel request','withdraw request','cancel claim','withdraw','changed my mind','not needed','cancel my order'],
++ '/my-claims', 'My Requests', 23),
++
++('pickup-vs-delivery', 'Receiving food',
++ 'What is the difference between self-pickup and volunteer delivery?',
++ 'With self-pickup you collect the food from the donor yourself and confirm that you picked it up. With volunteer-assisted delivery a delivery task is created, and a volunteer picks the food up from the donor and brings it to you. Either way the donor must accept your request first.',
++ array['self pickup','pickup','pick up','delivery','deliver','volunteer delivery','home delivery','collect','who brings food','transport','fulfillment'],
++ '/my-claims', 'My Requests', 24),
++
++('donation-statuses', 'Statuses',
++ 'What do the donation statuses mean?',
++ 'Draft: private, not published yet. Available: visible and open for requests. Claimed: the donor accepted a request. Pickup assigned: a volunteer took the delivery. Picked up: the food has been collected. Delivered: it reached the recipient. Completed: finished. Cancelled: the donor cancelled it. Expired: the pickup window passed with no accepted request. Rejected: an admin removed it.',
++ array['status','statuses','donation status','claimed','available','expired','pickup assigned','picked up','delivered','completed','rejected','draft','timeline','track donation','stages'],
++ '/my-donations', 'My Donations', 30),
++
++('donation-expired', 'Statuses',
++ 'Why did my donation expire?',
++ 'If the pickup window ends and no request has been accepted, the donation is marked Expired automatically (checked every few minutes) and the donor is notified. Create a new donation with a fresh pickup window if the food is still good.',
++ array['expired','expire','expiry','why expired','time over','window passed','auto expire','timeout'],
++ '/my-donations', 'My Donations', 31),
++
++('volunteer-how', 'Volunteering',
++ 'How can I volunteer to deliver food?',
++ 'Open Deliveries to see open delivery tasks and accept one. Acceptance is first come, first served, so if someone else takes it first you will be told. You cannot deliver your own donation or a request you made yourself. Your accepted tasks are under My Tasks.',
++ array['volunteer','deliver','delivery','deliveries','driver','rider','help deliver','pickup task','task','become volunteer','join as volunteer','accept task'],
++ '/volunteer/tasks', 'Open deliveries', 40),
++
++('volunteer-steps', 'Volunteering',
++ 'How do I update a delivery task?',
++ 'In My Tasks, move the task through its steps: Assigned, En route to pickup, Picked up, En route to delivery, then Delivered. Update each step as you go so the donor and recipient can follow progress.',
++ array['task status','update task','stepper','en route','picked up','delivered','delivery steps','mark delivered','progress','my tasks'],
++ '/volunteer/my-tasks', 'My Tasks', 41),
++
++('organizations-what', 'Organizations',
++ 'What are organizations and how do I create one?',
++ 'Organizations represent groups like NGOs, food banks, restaurants, hotels, shops, supermarkets and event organizers. Go to Organizations, choose to create a new one, and you become its owner. An admin verifies it, and its status shows as pending, verified, rejected or suspended.',
++ array['organization','organisation','ngo','food bank','restaurant','hotel','shop','supermarket','create organization','register organization','register ngo','register my ngo','register my restaurant','add my ngo','add my restaurant','verified','verification','owner','charity'],
++ '/organizations', 'Organizations', 50),
++
++('organizations-members', 'Organizations',
++ 'How do I add members to my organization?',
++ 'Membership is invite-only. Ask the person to copy their Profile ID from their Profile page, then add them from your organization page. Nobody can join an organization on their own. Organization owners cannot be removed by org admins.',
++ array['add member','invite','join organization','member','profile id','team member','staff','add people','invite user','membership'],
++ '/organizations', 'Organizations', 51),
++
++('contact-privacy', 'Privacy & safety',
++ 'Who can see my phone number?',
++ 'Your phone number is private. It is shared only between the donor and the recipient of an accepted request so they can coordinate the pickup. Nobody else can see it.',
++ array['phone','phone number','contact','privacy','private','number shared','mobile number','call','whatsapp','share number','data','personal information','safe'],
++ '/profile', 'Open profile', 60),
++
++('report-donation', 'Privacy & safety',
++ 'How do I report a problem with a donation?',
++ 'Open the donation and use the Report option, then describe what is wrong. Admins review reports and can dismiss them or remove the donation, and the donor is notified if it is removed.',
++ array['report','complain','complaint','abuse','spam','fake','inappropriate','unsafe food','problem with donation','flag','scam','bad food'],
++ '/browse', 'Browse food', 61),
++
++('saved-donations', 'Features',
++ 'How do I save a donation for later?',
++ 'Open a donation and use the bookmark button. All saved donations appear on the Saved page.',
++ array['save','saved','bookmark','favorite','favourite','later','wishlist','watchlist'],
++ '/saved', 'Saved donations', 70),
++
++('notifications', 'Features',
++ 'How do notifications work?',
++ 'The bell in the top bar shows live notifications about your donations, requests and tasks, for example when a request arrives or is accepted. Open Notifications to see the full list. Updates appear in real time, with no need to refresh.',
++ array['notification','notifications','bell','alerts','updates','messages','real time','realtime','notify','alert'],
++ '/notifications', 'Notifications', 71),
++
++('admin-area', 'Admin',
++ 'What can admins do?',
++ 'Admins see an Admin area with platform stats, organization verification, report moderation, a view of all donations, user management (deactivate or promote to admin) and an audit log. Admin access cannot be requested in the app; it is granted only by an existing admin.',
++ array['admin','administrator','moderator','moderation','become admin','admin panel','dashboard','audit log','manage users'],
++ null, null, 80),
++
++('support-contact', 'Help',
++ 'How can I contact support?',
++ 'There is no live support channel inside the app. For problems with a donation, use Report on that donation. For account or technical issues, contact the app administrator.',
++ array['contact support','support','customer care','helpline','email','complaint','feedback','talk to human','human','contact us','customer service','issue','bug'],
++ null, null, 90),
++
++('chatbot-about', 'Help',
++ 'What can this chatbot do?',
++ 'I can answer questions about how Second Serving works: what it is, how to donate, request, deliver, manage organizations, what statuses mean, and where to find things. I only know about this app, and I do not give medical or legal advice.',
++ array['chatbot','bot','assistant','what can you do','who are you','how can you help','commands','options','hello','hi','hey','help'],
++ null, null, 99)
++
++on conflict (slug) do update set
++  category   = excluded.category,
++  question   = excluded.question,
++  answer     = excluded.answer,
++  keywords   = excluded.keywords,
++  link_path  = excluded.link_path,
++  link_label = excluded.link_label,
++  sort_order = excluded.sort_order,
++  updated_at = now();

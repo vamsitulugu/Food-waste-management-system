@@ -53,6 +53,7 @@ The schema, security policies, and all business logic live entirely in
 | `0005_deferred_role_selection.sql` | Historical: made `profiles.role` nullable and added `set_initial_role()` (superseded — the app no longer has a role-choice step) |
 | `0006_fix_rls_recursion_and_open_roles.sql` | Fixes RLS recursion with `security definer` helper functions; opens delivery tasks to any signed-in user. **Applied by `supabase db push` like the others** |
 | `0007_v2_workflow_fixes.sql` | V2 workflow fixes: adds tables to the `supabase_realtime` publication, `cancel_donation()` rejects pending claims and cancels open tasks, org owners can't be removed by admins, donors/recipients can't deliver their own food, deactivated accounts can't request food and have live activity cancelled, `nearby_donations()` skips expired food |
+| `0008_help_chatbot.sql` | In-app help chatbot: `help_faqs` knowledge base (public read, admin write), `help_unanswered` log, typo-tolerant `search_help_faqs()` RPC, `log_unanswered_question()`, and ~32 seeded answers about the app. Safe to re-run |
 
 **Apply them:**
 
@@ -198,6 +199,8 @@ frontend guard.
 **Phase 13 — Analytics.** Basic platform counts on the admin dashboard via `count`-only queries.
 
 **Saved donations.** Bookmark any donation; `/saved` lists them.
+
+**Help chatbot.** A floating chat button (bottom-right, on every page, signed in or out) answers questions about the app from the `help_faqs` table. To add or change answers, edit rows in `help_faqs` (Table Editor or SQL) with no redeploy; `keywords` are lower-case words/phrases people might type. Questions it could not answer are saved in `help_unanswered` (admins can read them in the Table Editor).
 
 **Avatar upload.** Private `avatars` Storage bucket, own-file-only RLS, resolved via signed URL.
 

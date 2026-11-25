@@ -318,6 +318,19 @@ export interface Database {
         Args: { user_lat: number; user_lng: number; radius_m: number };
         Returns: Database['public']['Tables']['donations']['Row'][];
       };
+      search_help_faqs: {
+        Args: { p_query: string; p_limit?: number };
+        Returns: {
+          id: string;
+          category: string;
+          question: string;
+          answer: string;
+          link_path: string | null;
+          link_label: string | null;
+          score: number;
+        }[];
+      };
+      log_unanswered_question: { Args: { p_query: string }; Returns: void };
     };
   };
 }
