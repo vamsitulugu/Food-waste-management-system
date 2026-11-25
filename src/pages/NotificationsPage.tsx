@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
@@ -12,10 +13,13 @@ import {
 import { ListRowSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
 import { Button } from '../components/common/Button';
+import { getNotificationTarget } from '../utils/notificationLink';
+import type { AppNotification } from '../types/domain';
 
 export function NotificationsPage() {
   const { session } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const { data: notifications, loading, error, refetch } = useAsyncData(
     () => fetchNotifications(session!.user.id),
     [session?.user.id]
@@ -50,6 +54,19 @@ export function NotificationsPage() {
     }
   }
 
+  async function handleOpen(n: AppNotification) {
+    const target = getNotificationTarget(n);
+    if (!n.isRead) {
+      try {
+        await markNotificationRead(n.id);
+      } catch {
+        // don't block navigation if marking read fails
+      }
+    }
+    if (target) navigate(target.to);
+    else refetch();
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -76,38 +93,63 @@ export function NotificationsPage() {
 
       {notifications && notifications.length > 0 && (
         <div className="flex flex-col gap-2">
-          {notifications.map((n) => (
-            <div
-              key={n.id}
-              className={`flex items-start justify-between gap-3 rounded-xl border p-4
-                ${n.isRead ? 'border-base-700 bg-base-900' : 'border-brand-500/30 bg-brand-700/10'}`}
-            >
-              <div>
-                <p className="text-sm text-ink-100">{n.title}</p>
-                {n.body && <p className="mt-0.5 text-sm text-ink-500">{n.body}</p>}
-                <p className="mt-1 text-xs text-ink-700">{new Date(n.createdAt).toLocaleString()}</p>
-                {n.relatedDonationId && (
-                  <Link
-                    to={n.type === 'chat_message' && n.relatedClaimId ? `/chats/${n.relatedClaimId}` : `/donations/${n.relatedDonationId}`}
-                    onClick={() => !n.isRead && handleMarkRead(n.id)}
-                    className="mt-1.5 inline-block text-xs font-bold text-brand-400 hover:text-brand-300"
+          {notifications.map((n) => {
+            const target = getNotificationTarget(n);
+            return (
+              <div
+                key={n.id}
+                role={target ? 'link' : undefined}
+                tabIndex={target ? 0 : undefined}
+                onClick={target ? () => handleOpen(n) : undefined}
+                onKeyDown={
+                  target
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleOpen(n);
+                        }
+                      }
+                    : undefined
+                }
+                className={`flex items-start justify-between gap-3 rounded-xl border p-4 transition-colors
+                  ${n.isRead ? 'border-base-700 bg-base-900' : 'border-brand-500/30 bg-brand-700/10'}
+                  ${target ? 'cursor-pointer hover:border-brand-500/60 hover:shadow-card' : ''}`}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm text-ink-100">{n.title}</p>
+                  {n.body && <p className="mt-0.5 text-sm text-ink-500">{n.body}</p>}
+                  <p className="mt-1 text-xs text-ink-700">{new Date(n.createdAt).toLocaleString()}</p>
+                  {target && (
+                    <span className="mt-1.5 inline-flex items-center gap-0.5 text-xs font-bold text-brand-400">
+                      {target.label} <ChevronRight size={13} />
+                    </span>
+                  )}
+                </div>
+                <div className="flex shrink-0 gap-3">
+                  {!n.isRead && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkRead(n.id);
+                      }}
+                      className="text-xs text-brand-400 hover:text-brand-300"
+                    >
+                      Mark read
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(n.id);
+                    }}
+                    className="text-xs text-ink-700 hover:text-danger-400"
                   >
-                    {n.type === 'chat_message' ? 'Open chat →' : 'View donation →'}
-                  </Link>
-                )}
-              </div>
-              <div className="flex shrink-0 gap-3">
-                {!n.isRead && (
-                  <button onClick={() => handleMarkRead(n.id)} className="text-xs text-brand-400 hover:text-brand-300">
-                    Mark read
+                    Remove
                   </button>
-                )}
-                <button onClick={() => handleDelete(n.id)} className="text-xs text-ink-700 hover:text-danger-400">
-                  Remove
-                </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

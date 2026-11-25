@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import { fetchNotifications, fetchUnreadCount, markNotificationRead } from '../../api/notifications';
 import type { AppNotification } from '../../types/domain';
+import { getNotificationTarget } from '../../utils/notificationLink';
+import { ChevronRight } from 'lucide-react';
 
 export function NotificationBell() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [recent, setRecent] = useState<AppNotification[]>([]);
@@ -44,9 +47,16 @@ export function NotificationBell() {
   }
 
   async function handleItemClick(n: AppNotification) {
+    const target = getNotificationTarget(n);
+    setOpen(false);
+    if (target) navigate(target.to);
     if (!n.isRead) {
-      await markNotificationRead(n.id);
-      refresh();
+      try {
+        await markNotificationRead(n.id);
+        refresh();
+      } catch {
+        // navigation already happened; read-state will sync on next refresh
+      }
     }
   }
 
@@ -78,17 +88,25 @@ export function NotificationBell() {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {recent.length === 0 && <p className="px-4 py-6 text-center text-sm text-ink-500">No notifications yet.</p>}
-            {recent.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => handleItemClick(n)}
-                className={`block w-full border-b border-base-800 px-4 py-3 text-left text-sm last:border-b-0 hover:bg-base-850
-                  ${n.isRead ? 'text-ink-500' : 'text-ink-100'}`}
-              >
-                <p>{n.title}</p>
-                {n.body && <p className="mt-0.5 text-xs text-ink-500">{n.body}</p>}
-              </button>
-            ))}
+            {recent.map((n) => {
+              const target = getNotificationTarget(n);
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => handleItemClick(n)}
+                  className={`flex w-full items-start gap-2 border-b border-base-800 px-4 py-3 text-left text-sm last:border-b-0 hover:bg-base-850
+                    ${n.isRead ? 'text-ink-500' : 'text-ink-100'}`}
+                >
+                  {!n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-500" aria-label="Unread" />}
+                  <span className="min-w-0 flex-1">
+                    <span className="block">{n.title}</span>
+                    {n.body && <span className="mt-0.5 block text-xs text-ink-500">{n.body}</span>}
+                    {target && <span className="mt-1 block text-xs font-bold text-brand-400">{target.label} →</span>}
+                  </span>
+                  {target && <ChevronRight size={16} className="mt-0.5 shrink-0 text-ink-700" />}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

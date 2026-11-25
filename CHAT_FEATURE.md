@@ -16,3 +16,7 @@ New:  supabase/migrations/0009_chat_and_contact.sql, supabase/seed_chat_demo.sql
       src/hooks/useUnreadChats.ts, src/pages/ChatsPage.tsx
 Edited: App.tsx, AppShell.tsx, DonationDetailPage.tsx, NotificationsPage.tsx, SignupForm.tsx,
         ContactCard.tsx, api/auth.ts, types/database.ts, types/domain.ts
+
+## Notification redirects
+Clicking a notification (bell dropdown or Notifications page) marks it read and opens the right page.
+Mapping lives in one file: `src/utils/notificationLink.ts`.
