@@ -11,6 +11,8 @@ import type { FoodCategory, QuantityUnit } from '../../types/database';
 import { CATEGORY_EMOJI } from '../../utils/foodEmoji';
 import { compressImage } from '../../utils/image';
 import { geocodeAddress, reverseGeocode } from '../../utils/geocode';
+import { PlaceSearchInput } from './PlaceSearchInput';
+import { PickupPinMap } from './PickupPinMap';
 import { getErrorMessage } from '../../utils/errors';
 import { Button } from '../common/Button';
 
@@ -353,17 +355,24 @@ export function SimpleDonateForm({
       {/* Address */}
       <div>
         <Label>Pickup address</Label>
-        <textarea
+        <PlaceSearchInput
+          label="Search the place"
           value={address}
-          onChange={(e) => {
-            setAddress(e.target.value);
-            // A hand-edited address should be looked up again rather than reuse an old GPS point.
+          onChange={(text) => {
+            setAddress(text);
+            // A hand-edited address must be picked from the suggestions (or looked up again), not reuse an old point.
             setPoint(null);
           }}
-          rows={2}
-          placeholder="Street, area, landmark"
-          className={`${inputBase} resize-none ${errors.address ? 'border-danger-500' : 'border-base-600'}`}
+          onSelect={(place) => {
+            setAddress(place.label);
+            setPoint({ latitude: place.latitude, longitude: place.longitude });
+          }}
+          hasPoint={point !== null}
+          bias={point ?? coords}
+          error={errors.address}
+          hint="Start typing a shop, landmark, street or area, then pick the right one. Recipients are tracked to this exact spot."
         />
+        {point && <PickupPinMap point={point} onChange={setPoint} />}
         <button
           type="button"
           onClick={requestLocation}
@@ -373,7 +382,6 @@ export function SimpleDonateForm({
           {locLoading ? <Loader2 size={15} className="animate-spin" /> : point ? <Check size={15} /> : <MapPin size={15} />}
           {point ? 'Location added' : 'Use my current location'}
         </button>
-        {errors.address && <p className="mt-1.5 text-sm text-danger-400">{errors.address}</p>}
         {locError && <p className="mt-1.5 text-sm text-danger-400">{locError}</p>}
       </div>
 

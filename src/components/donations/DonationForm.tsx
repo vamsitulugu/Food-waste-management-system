@@ -3,6 +3,8 @@ import type { FormEvent } from 'react';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { PlaceSearchInput } from './PlaceSearchInput';
+import { PickupPinMap } from './PickupPinMap';
 import type { DonationInput } from '../../api/donations';
 import {
   FOOD_CATEGORY_LABELS,
@@ -116,7 +118,10 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
     setValues((v) => ({ ...v, [key]: value }));
   }
 
-  if (coords && (values.latitude === '' || values.longitude === '')) {
+  // Apply each GPS fix once. (Re-applying whenever the pin is empty would overwrite a place the donor is typing.)
+  const [appliedCoords, setAppliedCoords] = useState<typeof coords>(null);
+  if (coords && coords !== appliedCoords) {
+    setAppliedCoords(coords);
     set('latitude', String(coords.latitude));
     set('longitude', String(coords.longitude));
   }
@@ -158,7 +163,7 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
       e.pickupAddress = 'Enter a pickup address.';
     }
     if (!values.latitude || !values.longitude) {
-      e.latitude = 'Set pickup coordinates using "Use my current location" below.';
+      e.latitude = 'Pick your place from the suggestions, or use "Use my current location".';
     }
     return e;
   }
@@ -352,12 +357,25 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
             required
           />
           <div className="sm:col-span-2">
-            <Input
+            <PlaceSearchInput
               label="Pickup address"
               value={values.pickupAddress}
-              onChange={(e) => set('pickupAddress', e.target.value)}
+              onChange={(text) => {
+                // typing again invalidates the old pin until a suggestion is picked
+                setValues((v) => ({ ...v, pickupAddress: text, latitude: '', longitude: '' }));
+              }}
+              onSelect={(place) =>
+                setValues((v) => ({
+                  ...v,
+                  pickupAddress: place.label,
+                  latitude: String(place.latitude),
+                  longitude: String(place.longitude),
+                }))
+              }
+              hasPoint={Boolean(values.latitude && values.longitude)}
+              bias={coords}
               error={errors.pickupAddress}
-              required
+              hint="Start typing a shop, landmark, street or area, then pick the right one. Recipients are tracked to this exact spot."
             />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
@@ -366,9 +384,12 @@ export function DonationForm({ initialValues, submitLabel, submitting, onSubmit 
             </Button>
             {locError && <p className="text-sm text-danger-400">{locError}</p>}
             {values.latitude && values.longitude && (
-              <p className="text-xs text-ink-500">
-                Coordinates set: {Number(values.latitude).toFixed(5)}, {Number(values.longitude).toFixed(5)}
-              </p>
+              <PickupPinMap
+                point={{ latitude: Number(values.latitude), longitude: Number(values.longitude) }}
+                onChange={(pt) =>
+                  setValues((v) => ({ ...v, latitude: String(pt.latitude), longitude: String(pt.longitude) }))
+                }
+              />
             )}
             {errors.latitude && <p className="text-sm text-danger-400">{errors.latitude}</p>}
           </div>
