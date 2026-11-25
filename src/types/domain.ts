@@ -227,6 +227,21 @@ export interface AppNotification {
   createdAt: string;
 }
 
+// ---------------- Live tracking ----------------
+
+/** The latest known position of one person on a pickup. Only the latest is ever stored. */
+export interface LiveLocation {
+  claimId: string;
+  profileId: string;
+  latitude: number;
+  longitude: number;
+  /** Metres. */
+  accuracy: number | null;
+  /** Degrees clockwise from north. */
+  heading: number | null;
+  updatedAt: string;
+}
+
 // ---------------- Reports ----------------
 
 export interface Report {

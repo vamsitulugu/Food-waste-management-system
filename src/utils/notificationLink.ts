@@ -24,6 +24,9 @@ export function getNotificationTarget(n: AppNotification): NotificationTarget | 
     case 'claim_accepted':
       return donation ? { to: donation, label: 'View pickup details' } : { to: '/my-claims', label: 'My requests' };
 
+    case 'recipient_nearby':
+      return donation ? { to: `${donation}#live-tracking`, label: 'Open live tracking' } : null;
+
     case 'claim_rejected':
       return donation ? { to: donation, label: 'View donation' } : { to: '/my-claims', label: 'My requests' };
 

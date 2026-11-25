@@ -112,3 +112,30 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Live tracking: circular pulsing marker for the person on the move */
+.live-marker {
+  background: transparent;
+  border: 0;
+}
+.live-marker__dot,
+.live-marker__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+}
+.live-marker__dot {
+  inset: 5px;
+  background: var(--color-brand-500);
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(28, 28, 30, 0.35);
+}
+.live-marker__pulse {
+  background: var(--color-brand-500);
+  opacity: 0.45;
+  animation: live-pulse 1.8s ease-out infinite;
+}
+@keyframes live-pulse {
+  0% { transform: scale(0.5); opacity: 0.55; }
+  100% { transform: scale(1.6); opacity: 0; }
+}

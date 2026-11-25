@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowDown, Check, CheckCheck, Loader2, MessageCircle, Send } from 'lucide-react';
+import { AlertCircle, ArrowDown, Check, CheckCheck, Loader2, MapPin, MessageCircle, Send } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -46,9 +46,11 @@ interface ChatPanelProps {
   /** Tailwind height classes for the whole panel. */
   heightClass?: string;
   title?: string;
+  /** When set, shows a "Track" shortcut that links to the live tracking map. */
+  trackTo?: string;
 }
 
-export function ChatPanel({ claimId, donationId, heightClass = 'h-[34rem]', title }: ChatPanelProps) {
+export function ChatPanel({ claimId, donationId, heightClass = 'h-[34rem]', title, trackTo }: ChatPanelProps) {
   const { session } = useAuth();
   const { showToast } = useToast();
   const me = session?.user.id ?? '';
@@ -231,6 +233,14 @@ export function ChatPanel({ claimId, donationId, heightClass = 'h-[34rem]', titl
                 : 'Loading…'}
             </p>
           </div>
+          {trackTo && (
+            <Link
+              to={trackTo}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-700/10 px-3 py-2 text-xs font-bold text-brand-400 hover:bg-brand-700/15"
+            >
+              <MapPin size={14} /> Track
+            </Link>
+          )}
           <ReportUserButton people={others} claimId={claimId} />
         </div>
         {others.length > 0 && (

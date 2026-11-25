@@ -232,6 +232,20 @@ export interface Database {
         Update: { is_read?: boolean };
         Relationships: [];
       };
+      live_locations: {
+        Row: {
+          claim_id: string;
+          profile_id: string;
+          latitude: number;
+          longitude: number;
+          accuracy: number | null;
+          heading: number | null;
+          updated_at: string;
+        };
+        Insert: never; // written only through update_live_location()
+        Update: never;
+        Relationships: [];
+      };
       saved_donations: {
         Row: { profile_id: string; donation_id: string; created_at: string };
         Insert: { profile_id: string; donation_id: string };
@@ -328,6 +342,17 @@ export interface Database {
       };
       send_chat_message: { Args: { p_claim_id: string; p_body: string }; Returns: string };
       mark_chat_read: { Args: { p_claim_id: string }; Returns: void };
+      update_live_location: {
+        Args: {
+          p_claim_id: string;
+          p_lat: number;
+          p_lng: number;
+          p_accuracy?: number | null;
+          p_heading?: number | null;
+        };
+        Returns: void;
+      };
+      stop_live_location: { Args: { p_claim_id: string }; Returns: void };
       chat_participants: {
         Args: { p_claim_id: string };
         Returns: { profile_id: string; full_name: string; party: string }[];

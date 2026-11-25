@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, Clock, ExternalLink, Leaf, MapPin, Package, Pencil, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -18,6 +18,7 @@ import { SaveDonationButton } from '../components/donations/SaveDonationButton';
 import { DonationStatusTimeline } from '../components/donations/DonationStatusTimeline';
 import { ContactCard } from '../components/donations/ContactCard';
 import { ChatPanel } from '../components/chat/ChatPanel';
+import { LiveTrackingMap } from '../components/tracking/LiveTrackingMap';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/States';
@@ -35,6 +36,7 @@ export function DonationDetailPage() {
   const { donationId } = useParams<{ donationId: string }>();
   const { session, profile } = useAuth();
   const { showToast } = useToast();
+  const { hash } = useLocation();
 
   const { data: donation, loading, error, refetch } = useAsyncData(() => fetchDonation(donationId!), [donationId]);
   const { data: images, refetch: refetchImages } = useAsyncData(() => fetchDonationImages(donationId!), [donationId]);
@@ -70,6 +72,16 @@ export function DonationDetailPage() {
       cancelled = true;
     };
   }, [images]);
+
+  // Deep links (#live-tracking from a notification or the chat "Track" shortcut) scroll to the map once it exists.
+  const trackingVisible =
+    donation?.status !== undefined &&
+    ['claimed', 'pickup_assigned'].includes(donation.status) &&
+    Boolean(claims?.some((c) => c.status === 'accepted' && c.fulfillmentMethod === 'self_pickup'));
+  useEffect(() => {
+    if (hash !== '#live-tracking' || !trackingVisible) return;
+    document.getElementById('live-tracking')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [hash, trackingVisible]);
 
   if (loading && !donation) return <LoadingSpinner label="Loading donation" />;
   if (error || !donation) return <ErrorState message={error ?? 'Donation not found.'} onRetry={refetch} />;
@@ -371,6 +383,18 @@ export function DonationDetailPage() {
         </div>
       )}
 
+      {inFlight && acceptedClaim?.status === 'accepted' && acceptedClaim.fulfillmentMethod === 'self_pickup' && (isDonor || isAcceptedClaimant) && (
+        <div id="live-tracking" className="mt-6 scroll-mt-4">
+          <LiveTrackingMap
+            claimId={acceptedClaim.id}
+            pickup={{ latitude: donation.latitude, longitude: donation.longitude, address: donation.pickupAddress }}
+            travellerId={acceptedClaim.claimantId}
+            travellerName={acceptedClaim.claimant?.fullName ?? 'The recipient'}
+            isTraveller={isAcceptedClaimant}
+          />
+        </div>
+      )}
+
       {showContacts && acceptedClaim && (isDonor || isAcceptedClaimant) && (
         <div className="mt-6 flex flex-col gap-2 rounded-2xl border border-base-700 bg-base-900 p-5 shadow-card">
           <h2 className="text-sm font-medium text-ink-100">Coordinate the hand-over</h2>
@@ -406,6 +430,11 @@ export function DonationDetailPage() {
             claimId={acceptedClaim.id}
             donationId={donation.id}
             title={isDonor ? `Chat with ${acceptedClaim.claimant?.fullName ?? 'recipient'}` : 'Chat with the donor'}
+            trackTo={
+              inFlight && acceptedClaim.status === 'accepted' && acceptedClaim.fulfillmentMethod === 'self_pickup'
+                ? `/donations/${donation.id}#live-tracking`
+                : undefined
+            }
           />
         </div>
       )}
