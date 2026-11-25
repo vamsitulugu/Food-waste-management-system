@@ -29,7 +29,7 @@ export function BrowsePage() {
   const { data: savedIds } = useAsyncData(() => fetchSavedIds(session!.user.id), [session?.user.id]);
   const { coords, loading: locLoading, error: locError, requestLocation } = useGeolocation();
   const debouncedSearch = useDebouncedValue(filters.search, 350);
-  const effectiveFilters: BrowseFilters = { ...filters, search: debouncedSearch };
+  const effectiveFilters: BrowseFilters = { ...filters, search: debouncedSearch, excludeDonorId: session?.user.id };
 
   const {
     data: donations,
@@ -39,9 +39,9 @@ export function BrowsePage() {
   } = useAsyncData(
     () =>
       nearbyMode && coords
-        ? fetchNearbyDonations(coords.latitude, coords.longitude, NEARBY_RADIUS_M)
+        ? fetchNearbyDonations(coords.latitude, coords.longitude, NEARBY_RADIUS_M, session?.user.id)
         : fetchAvailableDonations(effectiveFilters),
-    [nearbyMode, coords?.latitude, coords?.longitude, filters.category, filters.isVegetarian, debouncedSearch, filters.sortBy]
+    [nearbyMode, coords?.latitude, coords?.longitude, filters.category, filters.isVegetarian, debouncedSearch, filters.sortBy, session?.user.id]
   );
 
   // No status filter: we also need the UPDATE that takes a donation out of 'available'.

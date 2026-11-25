@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { useRealtimeTable } from '../hooks/useRealtimeTable';
 import { fetchMyDonations, fetchPrimaryImageUrls, isDonationStatusOf } from '../api/donations';
 import { DonationCard } from '../components/donations/DonationCard';
 import { DonationGridSkeleton } from '../components/common/Skeleton';
@@ -17,12 +18,17 @@ export function MyDonationsPage() {
   );
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
 
+  // status changes (claimed, picked up, expired...) show up without a manual refresh
+  useRealtimeTable('donations', refetch, { filter: `donor_id=eq.${session?.user.id}` });
+
   useEffect(() => {
     if (!donations || donations.length === 0) return;
     let cancelled = false;
-    fetchPrimaryImageUrls(donations.map((d) => d.id)).then((urls) => {
-      if (!cancelled) setImageUrls(urls);
-    });
+    fetchPrimaryImageUrls(donations.map((d) => d.id))
+      .then((urls) => {
+        if (!cancelled) setImageUrls(urls);
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -34,7 +40,10 @@ export function MyDonationsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My donations</h1>
+        <div>
+          <h1 className="font-display text-2xl text-ink-100 sm:text-3xl">My donations</h1>
+          <p className="mt-1 text-sm text-ink-500">Food you posted. Other people's donations are on the Home page.</p>
+        </div>
         <Link to="/donations/new">
           <Button className="inline-flex items-center gap-1.5">
             <Plus size={16} /> Donate food
@@ -42,7 +51,7 @@ export function MyDonationsPage() {
         </Link>
       </div>
 
-      {loading && <DonationGridSkeleton count={4} />}
+      {loading && !donations && <DonationGridSkeleton count={4} />}
       {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && donations && donations.length === 0 && (
@@ -59,7 +68,7 @@ export function MyDonationsPage() {
 
       {active.length > 0 && (
         <div>
-          <h2 className="mb-4 font-display text-xl text-ink-100">Active</h2>
+          <h2 className="mb-4 font-display text-xl text-ink-100">Active donations ({active.length})</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {active.map((d) => (
               <DonationCard key={d.id} donation={d} linkTo={d.status === 'draft' ? `/donations/${d.id}/edit` : `/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
@@ -70,7 +79,7 @@ export function MyDonationsPage() {
 
       {past.length > 0 && (
         <div>
-          <h2 className="mb-4 font-display text-xl text-ink-100">History</h2>
+          <h2 className="mb-4 font-display text-xl text-ink-100">Past donations ({past.length})</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((d) => (
               <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />

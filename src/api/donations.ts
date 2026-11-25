@@ -148,6 +148,8 @@ export interface BrowseFilters {
   isVegetarian?: boolean;
   search?: string;
   sortBy?: 'newest' | 'expiring_soon';
+  /** Hide this donor's own donations (the Home feed only shows other people's food). */
+  excludeDonorId?: string;
 }
 
 export async function fetchAvailableDonations(filters: BrowseFilters = {}): Promise<Donation[]> {
@@ -158,6 +160,7 @@ export async function fetchAvailableDonations(filters: BrowseFilters = {}): Prom
     // never list food whose pickup window has passed, even if the expiry sweep hasn't run
     .gt('pickup_window_end', new Date().toISOString());
 
+  if (filters.excludeDonorId) query = query.neq('donor_id', filters.excludeDonorId);
   if (filters.category) query = query.eq('category', filters.category);
   if (filters.quantityUnit) query = query.eq('quantity_unit', filters.quantityUnit);
   if (filters.isVegetarian !== undefined) query = query.eq('is_vegetarian', filters.isVegetarian);
@@ -174,7 +177,12 @@ export async function fetchAvailableDonations(filters: BrowseFilters = {}): Prom
   return (data ?? []).map(mapDonation);
 }
 
-export async function fetchNearbyDonations(lat: number, lng: number, radiusM: number): Promise<Donation[]> {
+export async function fetchNearbyDonations(
+  lat: number,
+  lng: number,
+  radiusM: number,
+  excludeDonorId?: string
+): Promise<Donation[]> {
   const { data, error } = await supabase.rpc('nearby_donations', {
     user_lat: lat,
     user_lng: lng,
@@ -182,7 +190,10 @@ export async function fetchNearbyDonations(lat: number, lng: number, radiusM: nu
   });
   if (error) throw error;
   const now = Date.now();
-  return (data ?? []).map(mapDonation).filter((d) => new Date(d.pickupWindowEnd).getTime() > now);
+  return (data ?? [])
+    .map(mapDonation)
+    .filter((d) => new Date(d.pickupWindowEnd).getTime() > now)
+    .filter((d) => !excludeDonorId || d.donorId !== excludeDonorId);
 }
 
 export async function fetchDonationImages(donationId: string): Promise<DonationImage[]> {
