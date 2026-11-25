@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
@@ -7,6 +8,9 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import { fetchAvailableDonations, fetchNearbyDonations, fetchPrimaryImageUrls } from '../api/donations';
 import type { BrowseFilters } from '../api/donations';
 import { DonationCard } from '../components/donations/DonationCard';
+import { SaveIconButton } from '../components/donations/SaveIconButton';
+import { fetchSavedIds } from '../api/savedDonations';
+import { distanceMeters } from '../utils/formatDistance';
 import { DonationFilters } from '../components/donations/DonationFilters';
 import { DonationGridSkeleton } from '../components/common/Skeleton';
 import { EmptyState, ErrorState } from '../components/common/States';
@@ -21,6 +25,8 @@ export function BrowsePage() {
   const [nearbyMode, setNearbyMode] = useState(false);
   const [donateOpen, setDonateOpen] = useState(false);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const { session } = useAuth();
+  const { data: savedIds } = useAsyncData(() => fetchSavedIds(session!.user.id), [session?.user.id]);
   const { coords, loading: locLoading, error: locError, requestLocation } = useGeolocation();
   const debouncedSearch = useDebouncedValue(filters.search, 350);
   const effectiveFilters: BrowseFilters = { ...filters, search: debouncedSearch };
@@ -128,7 +134,18 @@ export function BrowsePage() {
           </h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((d) => (
-              <DonationCard key={d.id} donation={d} linkTo={`/donations/${d.id}`} imageUrl={imageUrls[d.id]} />
+              <DonationCard
+                key={d.id}
+                donation={d}
+                linkTo={`/donations/${d.id}`}
+                imageUrl={imageUrls[d.id]}
+                distanceM={coords ? distanceMeters(coords, d) : undefined}
+                saveControl={
+                  savedIds && d.donorId !== session?.user.id ? (
+                    <SaveIconButton donationId={d.id} initialSaved={savedIds.has(d.id)} />
+                  ) : undefined
+                }
+              />
             ))}
           </div>
         </div>

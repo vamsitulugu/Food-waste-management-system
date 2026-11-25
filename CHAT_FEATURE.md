@@ -20,3 +20,10 @@ Edited: App.tsx, AppShell.tsx, DonationDetailPage.tsx, NotificationsPage.tsx, Si
 ## Notification redirects
 Clicking a notification (bell dropdown or Notifications page) marks it read and opens the right page.
 Mapping lives in one file: `src/utils/notificationLink.ts`.
+
+## Cleanup + Saved/Deliveries fixes
+- Run `supabase/migrations/0010_expiry_sweep_schedule.sql` once (schedules the expiry job + sweeps stale food).
+- Saved: bookmark icon on every donation card (Browse + Saved); distance shown on cards when location is allowed.
+- Deliveries: full task cards (photo, quantity, address, pickup time, distance, Directions) + live updates.
+- Chat: "Report" flag in chat header; admin Reports page shows the reported user and can deactivate them.
+- Removed: unused fetchDonationById, two leftover .patch files. formatDistance helper is now used.

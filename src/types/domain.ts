@@ -187,7 +187,20 @@ export interface PickupTask {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
-  donation?: Pick<Donation, 'id' | 'title' | 'pickupAddress' | 'latitude' | 'longitude'>;
+  donation?: Pick<
+    Donation,
+    | 'id'
+    | 'title'
+    | 'pickupAddress'
+    | 'latitude'
+    | 'longitude'
+    | 'quantityValue'
+    | 'quantityUnit'
+    | 'pickupWindowStart'
+    | 'pickupWindowEnd'
+    | 'category'
+    | 'isVegetarian'
+  >;
 }
 
 export const PICKUP_TASK_STATUS_LABELS: Record<PickupTaskStatus, string> = {
@@ -227,6 +240,8 @@ export interface Report {
   resolvedBy: string | null;
   resolvedAt: string | null;
   createdAt: string;
+  reporterName?: string;
+  reportedProfileName?: string;
 }
 
 export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {

@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { UtensilsCrossed, Clock, MapPin, Leaf } from 'lucide-react';
 import { DonationStatusBadge } from './DonationStatusBadge';
 import { FOOD_CATEGORY_LABELS } from '../../types/domain';
 import { msUntil, formatDateTime } from '../../utils/formatDate';
+import { formatDistanceMeters } from '../../utils/formatDistance';
 import type { Donation } from '../../types/domain';
 
 /** Swiggy/Zomato-style listing card: big image with gradient overlay, bold title, meta rows. */
@@ -11,10 +13,16 @@ export function DonationCard({
   donation,
   linkTo,
   imageUrl,
+  saveControl,
+  distanceM,
 }: {
   donation: Donation;
   linkTo: string;
   imageUrl?: string;
+  /** Optional bookmark button shown top-right of the photo. */
+  saveControl?: ReactNode;
+  /** Optional straight-line distance from the user, in meters. */
+  distanceM?: number;
 }) {
   const isUrgent = useMemo(() => {
     if (donation.status !== 'available') return false;
@@ -63,8 +71,10 @@ export function DonationCard({
           </span>
         )}
 
+        {saveControl && <div className="absolute right-2.5 top-2.5 z-10">{saveControl}</div>}
+
         {donation.status !== 'available' && (
-          <div className="absolute right-2.5 top-2.5">
+          <div className={`absolute right-2.5 ${saveControl ? 'top-14' : 'top-2.5'}`}>
             <DonationStatusBadge status={donation.status} />
           </div>
         )}
@@ -83,6 +93,11 @@ export function DonationCard({
         <p className="flex items-center gap-1 truncate text-sm text-ink-700">
           <MapPin size={13} className="shrink-0" />
           <span className="truncate">{donation.pickupAddress}</span>
+          {distanceM !== undefined && (
+            <span className="ml-auto shrink-0 rounded-full bg-brand-700/10 px-2 py-0.5 text-[11px] font-bold text-brand-400">
+              {formatDistanceMeters(distanceM)}
+            </span>
+          )}
         </p>
         <div className="mt-2 border-t border-dashed border-base-600 pt-2.5">
           <p className={`flex items-center gap-1.5 text-xs font-semibold ${isUrgent ? 'text-danger-400' : 'text-ink-500'}`}>

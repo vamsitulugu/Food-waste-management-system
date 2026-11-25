@@ -16,6 +16,7 @@ import { CHAT_PARTY_LABELS } from '../../types/domain';
 import type { ChatMessage, ChatParticipant } from '../../types/domain';
 import { getErrorMessage } from '../../utils/errors';
 import { CallButton } from './CallButton';
+import { ReportUserButton } from './ReportUserButton';
 
 const MAX_LEN = 1000;
 
@@ -230,6 +231,7 @@ export function ChatPanel({ claimId, donationId, heightClass = 'h-[34rem]', titl
                 : 'Loading…'}
             </p>
           </div>
+          <ReportUserButton people={others} claimId={claimId} />
         </div>
         {others.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">

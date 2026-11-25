@@ -9,7 +9,7 @@ interface MessageRow {
   created_at: string;
 }
 
-export function mapMessage(row: MessageRow): ChatMessage {
+function mapMessage(row: MessageRow): ChatMessage {
   return {
     id: row.id,
     claimId: row.claim_id,

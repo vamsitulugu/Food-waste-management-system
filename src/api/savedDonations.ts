@@ -12,6 +12,13 @@ export async function isDonationSaved(profileId: string, donationId: string): Pr
   return data !== null;
 }
 
+/** Every donation id the user has bookmarked — one query for a whole list of cards. */
+export async function fetchSavedIds(profileId: string): Promise<Set<string>> {
+  const { data, error } = await supabase.from('saved_donations').select('donation_id').eq('profile_id', profileId);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.donation_id));
+}
+
 export async function saveDonation(profileId: string, donationId: string) {
   const { error } = await supabase.from('saved_donations').insert({ profile_id: profileId, donation_id: donationId });
   if (error) throw error;

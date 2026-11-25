@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAsyncData } from '../../hooks/useAsyncData';
 import { useToast } from '../../context/ToastContext';
 import { fetchReports, resolveReportAsAdmin, adminRejectDonation } from '../../api/admin';
+import { deactivateAccount } from '../../api/profile';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -16,6 +17,21 @@ export function AdminReportsPage() {
   const [actingOn, setActingOn] = useState<string | null>(null);
   const [rejectReasonFor, setRejectReasonFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+
+  async function handleDeactivateUser(reportId: string, userId: string, name?: string) {
+    if (!window.confirm(`Deactivate ${name ?? 'this user'}? Their live donations, requests and deliveries will be cancelled.`)) return;
+    setActingOn(reportId);
+    try {
+      await deactivateAccount(userId);
+      await resolveReportAsAdmin(reportId, 'resolved');
+      showToast('success', 'User deactivated and report resolved.');
+      refetch();
+    } catch (err) {
+      showToast('error', getErrorMessage(err, 'Could not deactivate user.'));
+    } finally {
+      setActingOn(null);
+    }
+  }
 
   async function handleDismiss(reportId: string) {
     setActingOn(reportId);
@@ -67,6 +83,12 @@ export function AdminReportsPage() {
                 <div>
                   <p className="text-sm text-ink-100">{r.reason}</p>
                   {r.details && <p className="mt-1 text-sm text-ink-500">{r.details}</p>}
+                  <p className="mt-1 text-xs text-ink-700">Reported by {r.reporterName ?? 'a user'}</p>
+                  {r.reportedProfileId && (
+                    <p className="mt-2 text-xs font-semibold text-ink-300">
+                      Reported user: {r.reportedProfileName ?? r.reportedProfileId}
+                    </p>
+                  )}
                   {r.reportedDonationId && (
                     <Link
                       to={`/donations/${r.reportedDonationId}`}
@@ -83,6 +105,15 @@ export function AdminReportsPage() {
                 <Button variant="secondary" loading={actingOn === r.id} onClick={() => handleDismiss(r.id)}>
                   Dismiss
                 </Button>
+                {r.reportedProfileId && (
+                  <Button
+                    variant="danger"
+                    loading={actingOn === r.id}
+                    onClick={() => handleDeactivateUser(r.id, r.reportedProfileId!, r.reportedProfileName)}
+                  >
+                    Deactivate user
+                  </Button>
+                )}
                 {r.reportedDonationId && (
                   <Button variant="danger" onClick={() => setRejectReasonFor(r.id)}>
                     Remove donation

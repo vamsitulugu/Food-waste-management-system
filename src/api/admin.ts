@@ -68,7 +68,19 @@ export async function fetchReports(status?: ReportStatus): Promise<Report[]> {
   if (status) query = query.eq('status', status);
   const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []).map((row) => ({
+  const rows = data ?? [];
+
+  // names for reporter + reported user (profiles are readable by authenticated users)
+  const ids = Array.from(
+    new Set(rows.flatMap((r) => [r.reporter_id, r.reported_profile_id]).filter((x): x is string => Boolean(x)))
+  );
+  const names = new Map<string, string>();
+  if (ids.length > 0) {
+    const { data: people } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+    (people ?? []).forEach((p) => names.set(p.id, p.full_name));
+  }
+
+  return rows.map((row) => ({
     id: row.id,
     reporterId: row.reporter_id,
     reportedDonationId: row.reported_donation_id,
@@ -79,6 +91,8 @@ export async function fetchReports(status?: ReportStatus): Promise<Report[]> {
     resolvedBy: row.resolved_by,
     resolvedAt: row.resolved_at,
     createdAt: row.created_at,
+    reporterName: names.get(row.reporter_id),
+    reportedProfileName: row.reported_profile_id ? names.get(row.reported_profile_id) : undefined,
   }));
 }
 
@@ -90,38 +104,6 @@ export async function resolveReportAsAdmin(reportId: string, decision: ReportSta
 export async function adminRejectDonation(donationId: string, reason: string) {
   const { error } = await supabase.rpc('admin_reject_donation', { p_donation_id: donationId, p_reason: reason });
   if (error) throw error;
-}
-
-export async function fetchDonationById(donationId: string): Promise<Donation | null> {
-  const { data, error } = await supabase.from('donations').select('*').eq('id', donationId).maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  return {
-    id: data.id,
-    donorId: data.donor_id,
-    organizationId: data.organization_id,
-    title: data.title,
-    description: data.description,
-    category: data.category,
-    quantityValue: data.quantity_value,
-    quantityUnit: data.quantity_unit,
-    isVegetarian: data.is_vegetarian,
-    allergens: data.allergens,
-    storageRequirement: data.storage_requirement,
-    packagingCondition: data.packaging_condition,
-    preparedAt: data.prepared_at,
-    expiresAt: data.expires_at,
-    pickupWindowStart: data.pickup_window_start,
-    pickupWindowEnd: data.pickup_window_end,
-    pickupAddress: data.pickup_address,
-    latitude: data.latitude,
-    longitude: data.longitude,
-    status: data.status,
-    cancellationReason: data.cancellation_reason,
-    rejectionReason: data.rejection_reason,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  };
 }
 
 export async function fetchDonationsForAdmin(filters: { status?: string; search?: string } = {}): Promise<Donation[]> {
