@@ -261,6 +261,18 @@ export interface Database {
         Update: never; // resolve_report() RPC only
         Relationships: [];
       };
+      claim_messages: {
+        Row: { id: string; claim_id: string; sender_id: string; body: string; created_at: string };
+        Insert: never; // send_chat_message() RPC only
+        Update: never;
+        Relationships: [];
+      };
+      claim_chat_reads: {
+        Row: { claim_id: string; profile_id: string; last_read_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       audit_logs: {
         Row: {
           id: string;
@@ -313,6 +325,25 @@ export interface Database {
       get_pickup_contact_info: {
         Args: { p_target_profile_id: string; p_donation_id: string };
         Returns: string | null;
+      };
+      send_chat_message: { Args: { p_claim_id: string; p_body: string }; Returns: string };
+      mark_chat_read: { Args: { p_claim_id: string }; Returns: void };
+      chat_participants: {
+        Args: { p_claim_id: string };
+        Returns: { profile_id: string; full_name: string; party: string }[];
+      };
+      my_chat_threads: {
+        Args: Record<string, never>;
+        Returns: {
+          claim_id: string;
+          donation_id: string;
+          donation_title: string;
+          other_names: string | null;
+          last_message: string | null;
+          last_message_at: string | null;
+          last_sender_id: string | null;
+          unread_count: number;
+        }[];
       };
       nearby_donations: {
         Args: { user_lat: number; user_lng: number; radius_m: number };

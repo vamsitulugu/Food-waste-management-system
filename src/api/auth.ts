@@ -5,15 +5,17 @@ export interface SignUpInput {
   fullName: string;
   email: string;
   password: string;
+  phone?: string;
 }
 
-export async function signUp({ fullName, email, password }: SignUpInput) {
+export async function signUp({ fullName, email, password, phone }: SignUpInput) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         full_name: fullName,
+        phone: phone?.trim() || null,
       },
     },
   });

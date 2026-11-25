@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { useRealtimeTable } from '../hooks/useRealtimeTable';
@@ -85,6 +86,15 @@ export function NotificationsPage() {
                 <p className="text-sm text-ink-100">{n.title}</p>
                 {n.body && <p className="mt-0.5 text-sm text-ink-500">{n.body}</p>}
                 <p className="mt-1 text-xs text-ink-700">{new Date(n.createdAt).toLocaleString()}</p>
+                {n.relatedDonationId && (
+                  <Link
+                    to={n.type === 'chat_message' && n.relatedClaimId ? `/chats/${n.relatedClaimId}` : `/donations/${n.relatedDonationId}`}
+                    onClick={() => !n.isRead && handleMarkRead(n.id)}
+                    className="mt-1.5 inline-block text-xs font-bold text-brand-400 hover:text-brand-300"
+                  >
+                    {n.type === 'chat_message' ? 'Open chat →' : 'View donation →'}
+                  </Link>
+                )}
               </div>
               <div className="flex shrink-0 gap-3">
                 {!n.isRead && (

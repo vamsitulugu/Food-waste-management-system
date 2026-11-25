@@ -10,10 +10,13 @@ import { getErrorMessage } from '../../utils/errors';
 interface FieldErrors {
   fullName?: string;
   email?: string;
+  phone?: string;
   password?: string;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** 7-15 digits, optional leading +, spaces/dashes/brackets allowed. */
+const PHONE_RE = /^\+?[\d\s\-()]{7,20}$/;
 
 export function SignupForm() {
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ export function SignupForm() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -31,6 +35,10 @@ export function SignupForm() {
     if (fullName.trim().length < 1) next.fullName = 'Enter your full name.';
     if (fullName.trim().length > 120) next.fullName = 'Full name is too long.';
     if (!EMAIL_RE.test(email)) next.email = 'Enter a valid email address.';
+    const digits = phone.replace(/\D/g, '');
+    if (!PHONE_RE.test(phone.trim()) || digits.length < 7 || digits.length > 15) {
+      next.phone = 'Enter a valid phone number so pickups can reach you.';
+    }
     if (password.length < 8) next.password = 'Password must be at least 8 characters.';
     return next;
   }
@@ -43,7 +51,7 @@ export function SignupForm() {
 
     setSubmitting(true);
     try {
-      const result = await signUp({ fullName: fullName.trim(), email, password });
+      const result = await signUp({ fullName: fullName.trim(), email, password, phone: phone.trim() });
       if (!result.session) {
         // Email confirmation is required by this Supabase project's auth settings.
         setAwaitingConfirmation(true);
@@ -89,6 +97,20 @@ export function SignupForm() {
         autoComplete="email"
         required
       />
+      <Input
+        label="Phone number"
+        type="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        error={errors.phone}
+        autoComplete="tel"
+        placeholder="+91 98765 43210"
+        required
+      />
+      <p className="-mt-3 text-xs text-ink-500">
+        Kept private. Only shared with the other person once a donor accepts a request, so you can call each other at
+        pickup.
+      </p>
       <Input
         label="Password"
         type="password"

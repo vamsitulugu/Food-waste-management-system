@@ -27,6 +27,7 @@ import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminDonationsPage } from './pages/admin/AdminDonationsPage';
 import { AdminAuditLogPage } from './pages/admin/AdminAuditLogPage';
+import { ChatsPage } from './pages/ChatsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ChatbotWidget } from './components/chatbot/ChatbotWidget';
 
@@ -61,6 +62,9 @@ export default function App() {
               <Route path="/browse" element={<BrowsePage />} />
               <Route path="/my-claims" element={<MyClaimsPage />} />
               <Route path="/saved" element={<SavedDonationsPage />} />
+
+              <Route path="/chats" element={<ChatsPage />} />
+              <Route path="/chats/:claimId" element={<ChatsPage />} />
 
               <Route path="/notifications" element={<NotificationsPage />} />
 

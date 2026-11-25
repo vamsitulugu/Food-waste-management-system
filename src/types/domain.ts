@@ -235,3 +235,42 @@ export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
   resolved: 'Resolved',
   dismissed: 'Dismissed',
 };
+
+// ---------------- Chat ----------------
+
+export type ChatParty = 'donor' | 'recipient' | 'volunteer';
+
+export interface ChatMessage {
+  id: string;
+  claimId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+  /** Client-only: message is still being sent. */
+  pending?: boolean;
+  /** Client-only: sending failed. */
+  failed?: boolean;
+}
+
+export interface ChatParticipant {
+  profileId: string;
+  fullName: string;
+  party: ChatParty;
+}
+
+export interface ChatThread {
+  claimId: string;
+  donationId: string;
+  donationTitle: string;
+  otherNames: string;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  lastSenderId: string | null;
+  unreadCount: number;
+}
+
+export const CHAT_PARTY_LABELS: Record<ChatParty, string> = {
+  donor: 'Donor',
+  recipient: 'Recipient',
+  volunteer: 'Volunteer',
+};

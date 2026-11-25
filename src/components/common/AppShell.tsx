@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link, NavLink } from 'react-router-dom';
-import { LogOut, Menu, Plus, Shield, User, X } from 'lucide-react';
+import { LogOut, Menu, MessageCircle, Plus, Shield, User, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { signOut } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
 import { Logo } from './Logo';
 import { NotificationBell } from '../notifications/NotificationBell';
 import { MAIN_NAV } from './navLinks';
+import { useUnreadChats } from '../../hooks/useUnreadChats';
 
 /** Active when the path is the link or any child of it (e.g. /volunteer/my-tasks under Deliveries). */
 function isSectionActive(pathname: string, to: string) {
@@ -19,6 +20,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
+  const { count: unreadChats } = useUnreadChats();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -108,6 +110,21 @@ export function AppShell() {
                 className="hidden items-center gap-1.5 whitespace-nowrap rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white shadow-md shadow-brand-500/25 transition-colors hover:bg-brand-400 sm:inline-flex"
               >
                 <Plus size={16} strokeWidth={3} /> Donate
+              </Link>
+              <Link
+                to="/chats"
+                aria-label={unreadChats > 0 ? `Messages, ${unreadChats} unread` : 'Messages'}
+                title="Messages"
+                className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-base-800 ${
+                  location.pathname.startsWith('/chats') ? 'bg-brand-700/10 text-brand-400' : 'text-ink-300'
+                }`}
+              >
+                <MessageCircle size={20} />
+                {unreadChats > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white">
+                    {unreadChats > 9 ? '9+' : unreadChats}
+                  </span>
+                )}
               </Link>
               <NotificationBell />
               <Link
@@ -211,6 +228,18 @@ export function AppShell() {
                   <Icon size={20} /> {label}
                 </NavLink>
               ))}
+              <NavLink
+                to="/chats"
+                tabIndex={menuOpen ? 0 : -1}
+                className={() => drawerLink(location.pathname.startsWith('/chats'))}
+              >
+                <MessageCircle size={20} /> Messages
+                {unreadChats > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white">
+                    {unreadChats > 9 ? '9+' : unreadChats}
+                  </span>
+                )}
+              </NavLink>
               <NavLink to="/profile" tabIndex={menuOpen ? 0 : -1} className={() => drawerLink(location.pathname === '/profile')}>
                 <User size={20} /> Profile &amp; settings
               </NavLink>

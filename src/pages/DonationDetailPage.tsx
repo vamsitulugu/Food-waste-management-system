@@ -17,6 +17,7 @@ import { ReportDonationButton } from '../components/donations/ReportDonationButt
 import { SaveDonationButton } from '../components/donations/SaveDonationButton';
 import { DonationStatusTimeline } from '../components/donations/DonationStatusTimeline';
 import { ContactCard } from '../components/donations/ContactCard';
+import { ChatPanel } from '../components/chat/ChatPanel';
 import { Button } from '../components/common/Button';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/States';
@@ -396,6 +397,16 @@ export function DonationDetailPage() {
               donationId={donation.id}
             />
           )}
+        </div>
+      )}
+
+      {showContacts && acceptedClaim && (isDonor || isAcceptedClaimant) && (
+        <div className="mt-6">
+          <ChatPanel
+            claimId={acceptedClaim.id}
+            donationId={donation.id}
+            title={isDonor ? `Chat with ${acceptedClaim.claimant?.fullName ?? 'recipient'}` : 'Chat with the donor'}
+          />
         </div>
       )}
 

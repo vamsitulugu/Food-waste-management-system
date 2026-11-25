@@ -39,7 +39,7 @@ export function ContactCard({ label, name, targetProfileId, donationId }: Contac
           <Phone size={13} /> {phone}
         </a>
       ) : (
-        <span className="text-xs text-ink-500">No phone shared</span>
+        <span className="text-right text-xs text-ink-500">No number added yet —<br />use the chat below</span>
       )}
     </div>
   );
