@@ -8,7 +8,7 @@ import type { UserRole } from '../types/database';
 function SignOutButton() {
   return (
     <button
-      onClick={() => void signOut().then(() => window.location.assign('/login'))}
+      onClick={() => void signOut().then(() => window.location.assign(`${import.meta.env.BASE_URL}login`))}
       className="mt-4 rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold text-white hover:bg-brand-400"
     >
       Sign out

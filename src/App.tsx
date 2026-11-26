@@ -34,7 +34,7 @@ import { ChatbotWidget } from './components/chatbot/ChatbotWidget';
 export default function App() {
   return (
     <ToastProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <AuthProvider>
           <Routes>
             <Route path="/" element={<PublicOnly><LandingPage /></PublicOnly>} />
