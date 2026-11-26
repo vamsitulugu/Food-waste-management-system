@@ -18,6 +18,18 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // If the app crashes before React renders (for example missing or invalid Supabase settings),
+      // show the reason instead of leaving a blank page.
+      window.addEventListener('error', function (e) {
+        var root = document.getElementById('root');
+        if (!root || root.hasChildNodes()) return;
+        var box = document.createElement('pre');
+        box.style.cssText = 'white-space:pre-wrap;margin:24px;padding:16px;border:1px solid #f26b1d;border-radius:12px;font:14px/1.5 system-ui,sans-serif;color:#1c1c1e';
+        box.textContent = 'The app could not start.\n\n' + (e.message || 'Unknown error');
+        root.appendChild(box);
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
